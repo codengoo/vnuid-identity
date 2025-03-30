@@ -10,5 +10,6 @@ func init() {}
 
 func SetupRoutes(app *fiber.App) {
 	var api = app.Group("/api")
-	api.Post("/create", controllers.AddUser)
+	api.Post("/add", controllers.AddUser)
+	api.Post("/add_many", controllers.AddMultipleUser)
 }
