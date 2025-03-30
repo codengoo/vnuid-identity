@@ -22,7 +22,7 @@ type AddMultipleUserRequest struct {
 	Type          string `xlsx:"5"`
 }
 
-func AddMultipleUser(ctx *fiber.Ctx) error {
+func AddMultipleUsers(ctx *fiber.Ctx) error {
 	file, err := ctx.FormFile("file")
 
 	if err != nil {

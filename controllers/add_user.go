@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"vnuid-identity/databases"
 	"vnuid-identity/models"
+	"vnuid-identity/utils"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -20,20 +20,13 @@ type AddUserRequest struct {
 }
 
 func AddUser(ctx *fiber.Ctx) error {
-	validate := validator.New()
 	var data AddUserRequest
 
 	if err := ctx.BodyParser(&data); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request boy"})
 	}
 
-	if err := validate.Struct(data); err != nil {
-		var msgs []string
-
-		for _, err := range err.(validator.ValidationErrors) {
-			msg := fmt.Sprintf("%s failed on %s", err.Field(), err.Tag())
-			msgs = append(msgs, msg)
-		}
+	if msgs := utils.Validate(&data); msgs != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid args", "msgs": msgs})
 	}
 
