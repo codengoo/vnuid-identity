@@ -1,7 +1,8 @@
 package routes
 
 import (
-	"vnuid-identity/controllers"
+	authController "vnuid-identity/controllers/auth"
+	userController "vnuid-identity/controllers/user"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -9,8 +10,12 @@ import (
 func init() {}
 
 func SetupRoutes(app *fiber.App) {
-	var api = app.Group("/api")
-	api.Post("/add", controllers.AddUser)
-	api.Post("/add_many", controllers.AddMultipleUsers)
-	api.Delete("/remove_many", controllers.RemoveMultipleUsers)
+	var userCtrl = app.Group("/user")
+	var authCtrl = app.Group("/auth")
+
+	userCtrl.Post("/add", userController.AddUser)
+	userCtrl.Post("/add_many", userController.AddMultipleUsers)
+	userCtrl.Delete("/remove_many", userController.RemoveMultipleUsers)
+
+	authCtrl.Post("/login", authController.Login)
 }

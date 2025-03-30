@@ -7,6 +7,7 @@ import (
 	"log"
 	"vnuid-identity/databases"
 	"vnuid-identity/models"
+	"vnuid-identity/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -62,6 +63,11 @@ func AddMultipleUsers(ctx *fiber.Ctx) error {
 			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": fmt.Sprintf("error reading row %d", i)})
 		}
 
+		password, err := utils.GeneratePassword()
+		if err != nil {
+			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate password"})
+		}
+
 		user := models.User{
 			ID:            uuid.New().String(),
 			Email:         data.Email,
@@ -70,6 +76,7 @@ func AddMultipleUsers(ctx *fiber.Ctx) error {
 			Name:          data.Name,
 			OfficialClass: data.OfficialClass,
 			Type:          data.Type,
+			Password:      password,
 		}
 		users = append(users, user)
 	}

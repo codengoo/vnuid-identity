@@ -23,11 +23,16 @@ func AddUser(ctx *fiber.Ctx) error {
 	var data AddUserRequest
 
 	if err := ctx.BodyParser(&data); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request boy"})
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
 	if msgs := utils.Validate(&data); msgs != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid args", "msgs": msgs})
+	}
+
+	password, err := utils.GeneratePassword()
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate password"})
 	}
 
 	user := models.User{
@@ -38,6 +43,7 @@ func AddUser(ctx *fiber.Ctx) error {
 		Name:          data.Name,
 		OfficialClass: data.OfficialClass,
 		ID:            uuid.New().String(),
+		Password:      password,
 	}
 
 	result := databases.DB.Create(&user)
