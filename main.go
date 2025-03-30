@@ -16,7 +16,7 @@ func init() {
 		log.Println("No .env file found")
 	}
 
-	fmt.Println("Setup database successfully")
+	fmt.Println("Setup env successfully")
 }
 
 func main() {
