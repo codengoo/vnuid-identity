@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"vnuid-identity/databases"
 	"vnuid-identity/routes"
 
@@ -20,11 +21,18 @@ func init() {
 }
 
 func main() {
+	// Get port from environment variable, default to 8080
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	databases.ConnectDB()
 
 	app := fiber.New()
 
 	routes.SetupRoutes(app)
 
-	log.Fatal(app.Listen(":3000"))
+	log.Printf("Server started at http://0.0.0.0:%s", port)
+	log.Fatal(app.Listen(":" + port))
 }

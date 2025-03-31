@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"os"
 	"vnuid-identity/utils"
 
@@ -18,7 +17,7 @@ func AuthCheck(roleRef string) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		secretKey := os.Getenv("JWT_TOKEN")
 		tokenString := ctx.Get("Authorization")
-		fmt.Println(tokenString)
+
 		if tokenString == "" {
 			return ctx.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
 		}
