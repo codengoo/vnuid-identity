@@ -30,7 +30,7 @@ func SetupRoutes(app *fiber.App) {
 	authCtrl.Post("/login_pass", authController.Login)
 	authCtrl.Post("/login_google", authController.LoginByGoogle)
 	authCtrl.Post("/login_pass_2fa", authController.LoginByPass2Fa)
-	authCtrl.Post("/login_auth_2fa", authController.LoginByAuth2Fa)
+	authCtrl.Post("/login_otp_2fa", authController.LoginByOtp2Fa)
 	authCtrl.Post("/login_nfc_2fa", authController.LoginByNFC2Fa)
 	authCtrl.Post("/login_qr_2fa", authController.LoginByQr2Fa)
 	authCtrl.Post("/login_qr_2fa_info", middlewares.AuthCheck(AUTH), authController.LoginByQr2FaInfo)
@@ -47,5 +47,5 @@ func SetupRoutes(app *fiber.App) {
 		}
 		return fiber.ErrUpgradeRequired
 	})
-	app.Get("/ws/:session", websocket.New(authController.ListenQRLogin2FA))
+	app.Get("/ws/login/:session", websocket.New(authController.ListenLogin2FA))
 }

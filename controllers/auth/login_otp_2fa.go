@@ -16,7 +16,7 @@ type LoginByAuthenticator2FaRequest struct {
 	SaveDevice bool   `json:"save_device"`
 }
 
-func LoginByAuth2Fa(ctx *fiber.Ctx) error {
+func LoginByOtp2Fa(ctx *fiber.Ctx) error {
 	var data LoginByAuthenticator2FaRequest
 
 	if err, msg := utils.GetBodyData(ctx, &data); err != nil {

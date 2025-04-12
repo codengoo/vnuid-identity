@@ -37,7 +37,7 @@ func sendMessage(ctx *websocket.Conn, text string) {
 	}
 }
 
-func ListenQRLogin2FA(ctx *websocket.Conn) {
+func ListenLogin2FA(ctx *websocket.Conn) {
 	defer func() {
 		fmt.Println("Client disconnected")
 		ctx.Close()
@@ -63,7 +63,6 @@ func ListenQRLogin2FA(ctx *websocket.Conn) {
 			if err != nil {
 				sendMessage(ctx, err.Error())
 			} else {
-				// sendMessage(ctx, content.UID)
 				token, err := genQRAccept(content.UID, content.DeviceID, content.SaveDevice)
 				if err != nil {
 					sendMessage(ctx, err.Error())
