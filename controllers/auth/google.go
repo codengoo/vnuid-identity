@@ -33,8 +33,8 @@ func verifyGoogleIDToken(token string) (*idtoken.Payload, error) {
 
 func LoginByGoogle(ctx *fiber.Ctx) error {
 	var data GoogleLoginRequest
-	if err := utils.GetBodyData(ctx, &data); err != nil {
-		return err
+	if err, msg := utils.GetBodyData(ctx, &data); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON((fiber.Map{"error": err.Error(), "msg": msg}))
 	}
 
 	// Verify google ID
@@ -70,7 +70,7 @@ func LoginByGoogle(ctx *fiber.Ctx) error {
 	} else {
 		var allowList []string = []string{"password", "qr", "otp, nfc,auth"}
 
-		token, err := utils.GenerateTemporaryToken(gid, data.DeviceId)
+		token, err := utils.GenerateTemporaryToken(user.ID, data.DeviceId)
 		if err != nil {
 			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error generating token"})
 		}

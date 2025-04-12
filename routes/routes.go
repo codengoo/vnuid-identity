@@ -21,6 +21,8 @@ func SetupRoutes(app *fiber.App) {
 
 	authCtrl.Post("/login_pass", authController.Login)
 	authCtrl.Post("/login_google", authController.LoginByGoogle)
+	authCtrl.Post("/login_pass_2fa", authController.LoginByPass2Fa)
+
 	authCtrl.Get("/get_qr", authController.GetQR)
 	authCtrl.Post("/verify_qr", middlewares.AuthCheck("user"), authController.VerifyQR)
 	authCtrl.Get("/ws/:session", websocket.New(authController.AuthSocket))

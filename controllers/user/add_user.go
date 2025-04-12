@@ -19,15 +19,15 @@ type AddUserRequest struct {
 
 func AddUser(ctx *fiber.Ctx) error {
 	var data AddUserRequest
-	if err := utils.GetBodyData(ctx, &data); err != nil {
-		return err
+	if err, msg := utils.GetBodyData(ctx, &data); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON((fiber.Map{"error": err.Error(), "msg": msg}))
 	}
 
 	user := entities.User{
 		Type:          data.Type,
 		Email:         data.Email,
-		SID:           data.SID,
-		GID:           data.GID,
+		Sid:           data.SID,
+		Gid:           data.GID,
 		Name:          data.Name,
 		OfficialClass: data.OfficialClass,
 	}

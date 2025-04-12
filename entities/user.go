@@ -11,8 +11,8 @@ const (
 type User struct {
 	ID            string    `json:"id" gorm:"primaryKey;type:uuid;"`
 	Email         string    `json:"email" gorm:"uniqueIndex;not null"`
-	SID           string    `json:"sid" gorm:"uniqueIndex;not null"`
-	GID           string    `json:"gid" gorm:"uniqueIndex;not null"`
+	Sid           string    `json:"sid" gorm:"uniqueIndex;not null"`
+	Gid           string    `json:"gid" gorm:"uniqueIndex;not null"`
 	Password      string    `json:"password"`
 	Name          string    `json:"name" gorm:"not null"`
 	DOB           *string   `json:"dob"`

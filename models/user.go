@@ -21,7 +21,7 @@ func GetUser(id string) (entities.User, error) {
 	if isUUID(id) {
 		result = databases.DB.Model(&entities.User{}).Where("id = ?", id).First(&user)
 	} else {
-		result = databases.DB.Model(&entities.User{}).Where("email = ? OR s_id = ? OR g_id = ?", id, id, id).First(&user)
+		result = databases.DB.Model(&entities.User{}).Where("email = ? OR sid = ? OR gid = ?", id, id, id).First(&user)
 	}
 
 	if result.Error != nil {
@@ -91,8 +91,8 @@ func AddUser(input entities.User) error {
 	user := entities.User{
 		Type:          input.Type,
 		Email:         input.Email,
-		SID:           input.SID,
-		GID:           input.GID,
+		Sid:           input.Sid,
+		Gid:           input.Gid,
 		Name:          input.Name,
 		OfficialClass: input.OfficialClass,
 		ID:            uuid.New().String(),
@@ -106,4 +106,20 @@ func AddUser(input entities.User) error {
 	}
 
 	return nil
+}
+
+func VerifyPassword(id string, password string) (bool, entities.User) {
+	user, err := GetUser(id)
+
+	if err != nil {
+		return false, entities.User{}
+	}
+
+	isValid := utils.VerifyPassword(user.Password, password)
+
+	if isValid {
+		return true, user
+	} else {
+		return false, entities.User{}
+	}
 }

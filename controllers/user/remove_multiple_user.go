@@ -13,8 +13,8 @@ type RemoveMultipleUserRequest struct {
 
 func RemoveMultipleUsers(ctx *fiber.Ctx) error {
 	var data RemoveMultipleUserRequest
-	if err := utils.GetBodyData(ctx, &data); err != nil {
-		return err
+	if err, msg := utils.GetBodyData(ctx, &data); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON((fiber.Map{"error": err.Error(), "msg": msg}))
 	}
 
 	if err := models.RemoveUsers(data.IDs); err != nil {

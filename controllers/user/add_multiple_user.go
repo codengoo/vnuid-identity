@@ -63,8 +63,8 @@ func AddMultipleUsers(ctx *fiber.Ctx) error {
 
 		user := entities.User{
 			Email:         data.Email,
-			SID:           data.SID,
-			GID:           data.GID,
+			Sid:           data.SID,
+			Gid:           data.GID,
 			Name:          data.Name,
 			OfficialClass: data.OfficialClass,
 			Type:          data.Type,
