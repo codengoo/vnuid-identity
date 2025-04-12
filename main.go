@@ -30,6 +30,7 @@ func main() {
 	}
 
 	databases.ConnectDB()
+	databases.ConnectRD()
 
 	app := fiber.New()
 

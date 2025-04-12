@@ -167,7 +167,6 @@ func VerifyNFC(id string, code string) (bool, entities.User) {
 
 	result := databases.DB.Model(&entities.NFC{}).Where("id = ? AND user_id = ? AND active = ?", code, user.ID, true).First(&entities.NFC{})
 
-	println(code)
 	if result.Error != nil {
 		return false, entities.User{}
 	} else {

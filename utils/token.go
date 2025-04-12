@@ -24,8 +24,18 @@ type TmpTokenData struct {
 	AllowMethods []string `json:"allow_methods"`
 }
 
+type QRTokenData struct {
+	UID      string `json:"uid"`
+	DeviceID string `json:"device_id"`
+}
+
 type TmpTokenClaim struct {
 	TmpTokenData
+	jwt.RegisteredClaims
+}
+
+type QRTokenClaim struct {
+	QRTokenData
 	jwt.RegisteredClaims
 }
 
@@ -56,6 +66,17 @@ func GenerateTemporaryToken(uid string, deviceId string, allowMethod []string) (
 	return token.SignedString([]byte(SECRET_KEY_2FA))
 }
 
+func GenerateQRToken(uid string, deviceId string) (string, error) {
+	var SECRET_KEY_2FA = os.Getenv("JWT_TOKEN_2FA")
+	claims := jwt.MapClaims{
+		"uid":       uid,
+		"device_id": deviceId,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(SECRET_KEY_2FA))
+}
+
 func ParseTemporaryToken(tokenString string) (TmpTokenClaim, error) {
 	var SECRET_KEY_2FA = os.Getenv("JWT_TOKEN_2FA")
 	token, err := jwt.ParseWithClaims(tokenString, &TmpTokenClaim{}, func(token *jwt.Token) (interface{}, error) {
@@ -74,6 +95,29 @@ func ParseTemporaryToken(tokenString string) (TmpTokenClaim, error) {
 	claims, ok := token.Claims.(*TmpTokenClaim)
 	if !ok {
 		return TmpTokenClaim{}, fmt.Errorf("cannot parse token claims")
+	}
+
+	return *claims, nil
+}
+
+func ParseQRToken(tokenString string) (QRTokenClaim, error) {
+	var SECRET_KEY_2FA = os.Getenv("JWT_TOKEN_2FA")
+	token, err := jwt.ParseWithClaims(tokenString, &QRTokenClaim{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fiber.ErrUnauthorized
+		}
+
+		// check more here
+		return []byte(SECRET_KEY_2FA), nil
+	})
+
+	if err != nil || !token.Valid {
+		return QRTokenClaim{}, err
+	}
+
+	claims, ok := token.Claims.(*QRTokenClaim)
+	if !ok {
+		return QRTokenClaim{}, fmt.Errorf("cannot parse token claims")
 	}
 
 	return *claims, nil
