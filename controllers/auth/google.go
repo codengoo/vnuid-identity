@@ -20,7 +20,7 @@ type GoogleLoginRequest struct {
 func verifyGoogleIDToken(token string) (*idtoken.Payload, error) {
 	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
 	if googleClientID == "" {
-		return nil, fmt.Errorf("Invalid Google Client ID")
+		return nil, fmt.Errorf("invalid Google Client ID")
 	}
 
 	ctx := context.Background()
@@ -40,15 +40,12 @@ func LoginByGoogle(ctx *fiber.Ctx) error {
 	// Verify google ID
 	payload, err := verifyGoogleIDToken(data.TokenId)
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid token"})
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid token: " + err.Error()})
 	}
 
 	// Extract user linked with this google account
-	uid := payload.Claims["uid"].(string)
-	if uid == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid token payload"})
-	}
-	user, err := models.GetUser(uid)
+	gid := payload.Claims["sub"].(string)
+	user, err := models.GetUser(gid)
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Can not find user linked with this account"})
 	}
@@ -63,7 +60,7 @@ func LoginByGoogle(ctx *fiber.Ctx) error {
 		}
 
 		// Create login session
-		if _, err := models.CreateSession(data.DeviceId, uid, true); err != nil {
+		if _, err := models.CreateSession(data.DeviceId, user.ID, true); err != nil {
 			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": fmt.Sprintf("Create session: %s", err.Error()),
 			})
@@ -73,7 +70,7 @@ func LoginByGoogle(ctx *fiber.Ctx) error {
 	} else {
 		var allowList []string = []string{"password", "qr", "otp, nfc,auth"}
 
-		token, err := utils.GenerateTemporaryToken(uid, data.DeviceId)
+		token, err := utils.GenerateTemporaryToken(gid, data.DeviceId)
 		if err != nil {
 			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error generating token"})
 		}

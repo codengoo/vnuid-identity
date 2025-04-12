@@ -3,6 +3,8 @@ package models
 import (
 	"vnuid-identity/databases"
 	"vnuid-identity/entities"
+
+	"github.com/google/uuid"
 )
 
 func CreateSession(device_id string, uid string, saved bool) (string, error) {
@@ -11,6 +13,7 @@ func CreateSession(device_id string, uid string, saved bool) (string, error) {
 		LoginMethod: "google",
 		SavedDevice: saved,
 		UserId:      uid,
+		ID:          uuid.New().String(),
 	}
 
 	result := databases.DB.Create(&session)

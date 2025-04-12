@@ -7,6 +7,7 @@ import (
 	"vnuid-identity/utils"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 func isUUID(text string) bool {
@@ -16,7 +17,12 @@ func isUUID(text string) bool {
 
 func GetUser(id string) (entities.User, error) {
 	var user entities.User
-	result := databases.DB.Where("id = ? OR email = ? OR sid = ? OR gid = ?", id, id, id, id).First(&user)
+	var result *gorm.DB
+	if isUUID(id) {
+		result = databases.DB.Model(&entities.User{}).Where("id = ?", id).First(&user)
+	} else {
+		result = databases.DB.Model(&entities.User{}).Where("email = ? OR s_id = ? OR g_id = ?", id, id, id).First(&user)
+	}
 
 	if result.Error != nil {
 		return entities.User{}, result.Error
