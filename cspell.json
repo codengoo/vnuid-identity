@@ -5,8 +5,10 @@
     "dictionaries": [],
     "words": [
         "gorm",
+        "nfcs",
         "qrcode",
         "totp",
+        "uids",
         "vnuid"
     ],
     "ignoreWords": [],

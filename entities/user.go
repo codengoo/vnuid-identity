@@ -23,4 +23,5 @@ type User struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 
 	Sessions []Session `json:"sessions" gorm:"foreignKey:UserId"`
+	Nfcs     []NFC     `json:"nfcs" gorm:"foreignKey:UserId"`
 }

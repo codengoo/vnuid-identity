@@ -20,6 +20,6 @@ func ConnectDB() {
 		log.Fatal("Could not open database")
 	}
 
-	db.AutoMigrate(&entities.User{}, entities.Session{})
+	db.AutoMigrate(&entities.User{}, entities.Session{}, entities.NFC{})
 	DB = db
 }

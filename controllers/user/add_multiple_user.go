@@ -72,9 +72,15 @@ func AddMultipleUsers(ctx *fiber.Ctx) error {
 		users = append(users, user)
 
 		if len(users) == batchSize || i == len(sheet.Rows)-1 {
-			if err := models.AddManyUser(users); err != nil {
+			xusr, err := models.AddManyUser(users)
+			if err != nil {
 				return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 			}
+
+			if _, err := models.AddManyNFC(xusr); err != nil {
+				return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			}
+
 			users = []entities.User{}
 		}
 	}

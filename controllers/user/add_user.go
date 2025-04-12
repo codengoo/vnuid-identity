@@ -32,7 +32,12 @@ func AddUser(ctx *fiber.Ctx) error {
 		OfficialClass: data.OfficialClass,
 	}
 
-	if err := models.AddUser(user); err != nil {
+	user, err := models.AddUser(user)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	if _, err := models.AddNFC(user.ID); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 

@@ -51,7 +51,7 @@ func RemoveUsers(input []string) error {
 	return nil
 }
 
-func AddManyUser(input []entities.User) error {
+func AddManyUser(input []entities.User) ([]entities.User, error) {
 	type Result struct {
 		User entities.User
 		Err  error
@@ -72,21 +72,21 @@ func AddManyUser(input []entities.User) error {
 	for range input {
 		res := <-ch
 		if res.Err != nil {
-			return fmt.Errorf("failed to generate password")
+			return []entities.User{}, fmt.Errorf("failed to generate password")
 		}
 		users = append(users, res.User)
 	}
 	if result := databases.DB.CreateInBatches(&users, 50); result.Error != nil {
-		return fmt.Errorf("failed to create users: %v", result.Error)
+		return []entities.User{}, fmt.Errorf("failed to create users: %v", result.Error)
 	}
 
-	return nil
+	return users, nil
 }
 
-func AddUser(input entities.User) error {
+func AddUser(input entities.User) (entities.User, error) {
 	password, err := utils.GeneratePassword()
 	if err != nil {
-		return fmt.Errorf("failed to generate password")
+		return entities.User{}, fmt.Errorf("failed to generate password")
 	}
 
 	user := entities.User{
@@ -103,10 +103,10 @@ func AddUser(input entities.User) error {
 	result := databases.DB.Create(&user)
 
 	if result.Error != nil {
-		return fmt.Errorf("failed to create user: %v", result.Error)
+		return entities.User{}, fmt.Errorf("failed to create user: %v", result.Error)
 	}
 
-	return nil
+	return user, nil
 }
 
 func VerifyPassword(id string, password string) (bool, entities.User) {
@@ -155,5 +155,22 @@ func VerifyAuthenticator(id string, code string) (bool, entities.User) {
 		return true, user
 	} else {
 		return false, entities.User{}
+	}
+}
+
+func VerifyNFC(id string, code string) (bool, entities.User) {
+	user, err := GetUser(id)
+
+	if err != nil {
+		return false, entities.User{}
+	}
+
+	result := databases.DB.Model(&entities.NFC{}).Where("id = ? AND user_id = ? AND active = ?", code, user.ID, true).First(&entities.NFC{})
+
+	println(code)
+	if result.Error != nil {
+		return false, entities.User{}
+	} else {
+		return true, user
 	}
 }
