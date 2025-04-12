@@ -1,13 +1,11 @@
 package controllers
 
 import (
-	"fmt"
-	"vnuid-identity/databases"
+	"vnuid-identity/entities"
 	"vnuid-identity/models"
 	"vnuid-identity/utils"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 type AddUserRequest struct {
@@ -21,37 +19,21 @@ type AddUserRequest struct {
 
 func AddUser(ctx *fiber.Ctx) error {
 	var data AddUserRequest
-
-	if err := ctx.BodyParser(&data); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	if err := utils.GetBodyData(ctx, &data); err != nil {
+		return err
 	}
 
-	if msgs := utils.Validate(&data); msgs != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid args", "msgs": msgs})
-	}
-
-	password, err := utils.GeneratePassword()
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate password"})
-	}
-
-	user := models.User{
+	user := entities.User{
 		Type:          data.Type,
 		Email:         data.Email,
 		SID:           data.SID,
 		GID:           data.GID,
 		Name:          data.Name,
 		OfficialClass: data.OfficialClass,
-		ID:            uuid.New().String(),
-		Password:      password,
 	}
 
-	result := databases.DB.Create(&user)
-
-	if result.Error != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": fmt.Sprintf("Create user failed with message: %s", result.Error.Error()),
-		})
+	if err := models.AddUser(user); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return ctx.JSON(fiber.Map{"data": user})

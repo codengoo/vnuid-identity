@@ -17,6 +17,8 @@ func init() {
 		log.Println("No .env file found")
 	}
 
+	dba := os.Getenv("DATABASE_URL")
+	fmt.Println("Port: ", dba)
 	fmt.Println("Setup env successfully")
 }
 

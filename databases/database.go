@@ -3,8 +3,7 @@ package databases
 import (
 	"log"
 	"os"
-
-	"vnuid-identity/models"
+	"vnuid-identity/entities"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -21,6 +20,6 @@ func ConnectDB() {
 		log.Fatal("Could not open database")
 	}
 
-	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&entities.User{}, entities.Session{})
 	DB = db
 }

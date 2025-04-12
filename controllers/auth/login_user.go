@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"vnuid-identity/databases"
-	"vnuid-identity/models"
+	"vnuid-identity/entities"
 	"vnuid-identity/utils"
 
 	"github.com/gofiber/fiber/v2"
@@ -24,7 +24,7 @@ func Login(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid args", "msgs": msgs})
 	}
 
-	var user models.User
+	var user entities.User
 	result := databases.DB.Where("email = ?", data.Email).First(&user) // SELECT * FROM users WHERE email = ? LIMIT 1;
 
 	if result.Error != nil {

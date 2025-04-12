@@ -4,13 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
-	"vnuid-identity/databases"
+	"time"
+	"vnuid-identity/entities"
 	"vnuid-identity/models"
-	"vnuid-identity/utils"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/tealeg/xlsx"
 )
 
@@ -24,6 +22,7 @@ type AddMultipleUserRequest struct {
 }
 
 func AddMultipleUsers(ctx *fiber.Ctx) error {
+	batchSize := 100
 	file, err := ctx.FormFile("file")
 
 	if err != nil {
@@ -51,7 +50,7 @@ func AddMultipleUsers(ctx *fiber.Ctx) error {
 	}
 
 	sheet := excelFile.Sheets[0]
-	var users []models.User
+	var users []entities.User
 
 	for i, row := range sheet.Rows {
 		if i == 0 {
@@ -63,26 +62,31 @@ func AddMultipleUsers(ctx *fiber.Ctx) error {
 			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": fmt.Sprintf("error reading row %d", i)})
 		}
 
-		password, err := utils.GeneratePassword()
-		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate password"})
-		}
-
-		user := models.User{
-			ID:            uuid.New().String(),
+		user := entities.User{
 			Email:         data.Email,
 			SID:           data.SID,
 			GID:           data.GID,
 			Name:          data.Name,
 			OfficialClass: data.OfficialClass,
 			Type:          data.Type,
-			Password:      password,
 		}
 		users = append(users, user)
+
+		if len(users) == batchSize || i == len(sheet.Rows)-1 {
+			start := time.Now()
+			if err := models.AddManyUser(users); err != nil {
+				return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			}
+			fmt.Printf("Inserted batch %d-%d in %v\n", i-len(users)+1, i+1, time.Since(start))
+			users = []entities.User{}
+			if err := models.AddManyUser(users); err != nil {
+				return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			}
+		}
 	}
 
-	if result := databases.DB.Create(&users); result.Error != nil {
-		log.Fatalf("could not insert batch of users: %v", result.Error)
+	if err := models.AddManyUser(users); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return ctx.JSON(fiber.Map{"data": users})

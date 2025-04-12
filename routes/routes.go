@@ -12,14 +12,14 @@ import (
 func init() {}
 
 func SetupRoutes(app *fiber.App) {
-	var userCtrl = app.Group("/user")
+	var userCtrl = app.Group("/manage")
 	var authCtrl = app.Group("/auth")
 
 	userCtrl.Post("/add", middlewares.AuthCheck("admin"), userController.AddUser)
 	userCtrl.Post("/add_many", middlewares.AuthCheck("admin"), userController.AddMultipleUsers)
 	userCtrl.Delete("/remove_many", middlewares.AuthCheck("admin"), userController.RemoveMultipleUsers)
 
-	authCtrl.Post("/login", authController.Login)
+	authCtrl.Post("/login_pass", authController.Login)
 	authCtrl.Get("/get_qr", authController.GetQR)
 	authCtrl.Post("/verify_qr", middlewares.AuthCheck("user"), authController.VerifyQR)
 	authCtrl.Get("/ws/:session", websocket.New(authController.AuthSocket))
