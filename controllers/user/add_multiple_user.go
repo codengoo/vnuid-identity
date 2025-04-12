@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"time"
 	"vnuid-identity/entities"
 	"vnuid-identity/models"
 
@@ -51,7 +50,7 @@ func AddMultipleUsers(ctx *fiber.Ctx) error {
 
 	sheet := excelFile.Sheets[0]
 	var users []entities.User
-
+	fmt.Print(len(sheet.Rows))
 	for i, row := range sheet.Rows {
 		if i == 0 {
 			continue // skip header row
@@ -73,21 +72,12 @@ func AddMultipleUsers(ctx *fiber.Ctx) error {
 		users = append(users, user)
 
 		if len(users) == batchSize || i == len(sheet.Rows)-1 {
-			start := time.Now()
 			if err := models.AddManyUser(users); err != nil {
 				return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 			}
-			fmt.Printf("Inserted batch %d-%d in %v\n", i-len(users)+1, i+1, time.Since(start))
 			users = []entities.User{}
-			if err := models.AddManyUser(users); err != nil {
-				return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-			}
 		}
 	}
 
-	if err := models.AddManyUser(users); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	return ctx.JSON(fiber.Map{"data": users})
+	return ctx.JSON(fiber.Map{"message": "OK"})
 }

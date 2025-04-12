@@ -45,28 +45,31 @@ func RemoveUsers(input []string) error {
 }
 
 func AddManyUser(input []entities.User) error {
-	var users []entities.User
+	type Result struct {
+		User entities.User
+		Err  error
+	}
+	ch := make(chan Result, len(input))
 
-	for _, data := range input {
-		password, err := utils.GeneratePassword()
-		if err != nil {
-			return fmt.Errorf("failed to generate password")
-		}
-
-		user := entities.User{
-			ID:            uuid.New().String(),
-			Email:         data.Email,
-			SID:           data.SID,
-			GID:           data.GID,
-			Name:          data.Name,
-			OfficialClass: data.OfficialClass,
-			Type:          data.Type,
-			Password:      password,
-		}
-		users = append(users, user)
+	// Create routines
+	for _, u := range input {
+		go func(data entities.User) {
+			pass, err := utils.GeneratePassword()
+			data.ID = uuid.New().String()
+			data.Password = pass
+			ch <- Result{User: data, Err: err}
+		}(u)
 	}
 
-	if result := databases.DB.Create(&users); result.Error != nil {
+	var users []entities.User
+	for range input {
+		res := <-ch
+		if res.Err != nil {
+			return fmt.Errorf("failed to generate password")
+		}
+		users = append(users, res.User)
+	}
+	if result := databases.DB.CreateInBatches(&users, 50); result.Error != nil {
 		return fmt.Errorf("failed to create users: %v", result.Error)
 	}
 
