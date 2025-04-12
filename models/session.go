@@ -25,7 +25,7 @@ func CreateSession(device_id string, uid string, saved bool) (string, error) {
 	}
 }
 
-// Check if user first logged in or
+// Check if user first logged in or saved this device
 func CheckSession(device_id string, uid string) bool {
 	var count int64
 	databases.DB.Model(&entities.Session{}).Where("user_id = ?", uid).Count(&count)
@@ -36,7 +36,7 @@ func CheckSession(device_id string, uid string) bool {
 	}
 
 	var session entities.Session
-	result := databases.DB.Where("device_id = ? AND user_id = ?", device_id, uid, true).Order("created_at DESC").First(&session)
+	result := databases.DB.Where("device_id = ? AND user_id = ?", device_id, uid).Order("created_at DESC").First(&session)
 
 	if result.Error != nil {
 		return false

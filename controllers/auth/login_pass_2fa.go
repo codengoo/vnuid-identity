@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"slices"
 	"vnuid-identity/models"
 	"vnuid-identity/utils"
 
@@ -26,12 +27,12 @@ func LoginByPass2Fa(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
 	}
 
-	if claims.DeviceID != data.DeviceId {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid device id"})
+	if claims.DeviceID != data.DeviceId || !slices.Contains(claims.AllowMethods, "password") {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token params"})
 	}
 
-	isValid, user := models.VerifyPassword(claims.UID, data.Password)
-	if !isValid {
+	valid, user := models.VerifyPassword(claims.UID, data.Password)
+	if !valid {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid username or password"})
 	}
 

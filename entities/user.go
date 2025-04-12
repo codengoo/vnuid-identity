@@ -18,6 +18,7 @@ type User struct {
 	DOB           *string   `json:"dob"`
 	OfficialClass string    `json:"official_class" gorm:"not null"`
 	Type          string    `json:"type" gorm:"not null"`
+	Authenticator string    `json:"authenticator"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 

@@ -9,16 +9,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var SECRET_KEY string
-var SECRET_KEY_2FA string
-
-func init() {
-	SECRET_KEY = os.Getenv("JWT_TOKEN")
-	SECRET_KEY_2FA = os.Getenv("JWT_TOKEN_2FA")
-}
-
 type TokenData struct {
-	ID       string `json:"id"`
+	UID      string `json:"uid"`
 	SID      string `json:"sid"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
@@ -27,8 +19,9 @@ type TokenData struct {
 }
 
 type TmpTokenData struct {
-	UID      string `json:"uid"`
-	DeviceID string `json:"device_id"`
+	UID          string   `json:"uid"`
+	DeviceID     string   `json:"device_id"`
+	AllowMethods []string `json:"allow_methods"`
 }
 
 type TmpTokenClaim struct {
@@ -37,8 +30,9 @@ type TmpTokenClaim struct {
 }
 
 func GenerateToken(user entities.User, deviceId string) (string, error) {
+	var SECRET_KEY = os.Getenv("JWT_TOKEN")
 	claims := jwt.MapClaims{
-		"id":        user.ID,
+		"uid":       user.ID,
 		"sid":       user.Sid,
 		"name":      user.Name,
 		"email":     user.Email,
@@ -50,10 +44,12 @@ func GenerateToken(user entities.User, deviceId string) (string, error) {
 	return token.SignedString([]byte(SECRET_KEY))
 }
 
-func GenerateTemporaryToken(uid string, deviceId string) (string, error) {
+func GenerateTemporaryToken(uid string, deviceId string, allowMethod []string) (string, error) {
+	var SECRET_KEY_2FA = os.Getenv("JWT_TOKEN_2FA")
 	claims := jwt.MapClaims{
-		"uid":       uid,
-		"device_id": deviceId,
+		"uid":           uid,
+		"device_id":     deviceId,
+		"allow_methods": allowMethod,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -61,6 +57,7 @@ func GenerateTemporaryToken(uid string, deviceId string) (string, error) {
 }
 
 func ParseTemporaryToken(tokenString string) (TmpTokenClaim, error) {
+	var SECRET_KEY_2FA = os.Getenv("JWT_TOKEN_2FA")
 	token, err := jwt.ParseWithClaims(tokenString, &TmpTokenClaim{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fiber.ErrUnauthorized
@@ -80,4 +77,10 @@ func ParseTemporaryToken(tokenString string) (TmpTokenClaim, error) {
 	}
 
 	return *claims, nil
+}
+
+func PrintAllClaims(claims jwt.Claims) {
+	for k, v := range claims.(jwt.MapClaims) {
+		fmt.Println(k, v)
+	}
 }

@@ -6,6 +6,7 @@
     "words": [
         "gorm",
         "qrcode",
+        "totp",
         "vnuid"
     ],
     "ignoreWords": [],

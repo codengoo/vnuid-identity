@@ -7,6 +7,7 @@ import (
 	"vnuid-identity/utils"
 
 	"github.com/google/uuid"
+	"github.com/pquerna/otp/totp"
 	"gorm.io/gorm"
 )
 
@@ -116,6 +117,39 @@ func VerifyPassword(id string, password string) (bool, entities.User) {
 	}
 
 	isValid := utils.VerifyPassword(user.Password, password)
+
+	if isValid {
+		return true, user
+	} else {
+		return false, entities.User{}
+	}
+}
+
+func SetAuthenticator(id string, authenticator string) error {
+	user, err := GetUser(id)
+
+	if err != nil {
+		return err
+	}
+
+	user.Authenticator = authenticator
+	result := databases.DB.Save(&user)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func VerifyAuthenticator(id string, code string) (bool, entities.User) {
+	user, err := GetUser(id)
+
+	if err != nil {
+		return false, entities.User{}
+	}
+
+	isValid := totp.Validate(code, user.Authenticator)
 
 	if isValid {
 		return true, user

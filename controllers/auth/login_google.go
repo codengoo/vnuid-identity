@@ -68,9 +68,9 @@ func LoginByGoogle(ctx *fiber.Ctx) error {
 
 		return ctx.JSON(fiber.Map{"token": token})
 	} else {
-		var allowList []string = []string{"password", "qr", "otp, nfc,auth"}
+		var allowList []string = []string{"password", "qr", "otp", "nfc", "auth"}
 
-		token, err := utils.GenerateTemporaryToken(user.ID, data.DeviceId)
+		token, err := utils.GenerateTemporaryToken(user.ID, data.DeviceId, allowList)
 		if err != nil {
 			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error generating token"})
 		}
