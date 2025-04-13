@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"vnuid-identity/helpers"
 	"vnuid-identity/models"
 	"vnuid-identity/utils"
 
@@ -13,8 +14,9 @@ import (
 )
 
 type GoogleLoginRequest struct {
-	TokenId  string `json:"id_token" validate:"required"`
-	DeviceId string `json:"device_id" validate:"required"`
+	TokenId    string `json:"id_token" validate:"required"`
+	DeviceId   string `json:"device_id" validate:"required"`
+	DeviceName string `json:"device_name" validate:"required"`
 }
 
 func verifyGoogleIDToken(token string) (*idtoken.Payload, error) {
@@ -34,46 +36,41 @@ func verifyGoogleIDToken(token string) (*idtoken.Payload, error) {
 func LoginByGoogle(ctx *fiber.Ctx) error {
 	var data GoogleLoginRequest
 	if err, msg := utils.GetBodyData(ctx, &data); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON((fiber.Map{"error": err.Error(), "msg": msg}))
+		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
 	// Verify google ID
 	payload, err := verifyGoogleIDToken(data.TokenId)
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid token: " + err.Error()})
+		return utils.ReturnError(ctx, fiber.StatusBadRequest, err)
 	}
 
 	// Extract user linked with this google account
 	gid := payload.Claims["sub"].(string)
 	user, err := models.GetUser(gid)
 	if err != nil {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Can not find user linked with this account"})
+		return utils.ReturnError(ctx, fiber.StatusUnauthorized, err)
 	}
 
 	// Check if session already logged in on device_id
 	isActive := models.CheckSession(data.DeviceId, user.ID)
 	if isActive {
 		// Generate token
-		token, err := utils.GenerateToken(user, data.DeviceId)
+		token, err := helpers.AddLoginSession(user, data.DeviceId, true)
 		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error generating token"})
-		}
-
-		// Create login session
-		if _, err := models.CreateSession(data.DeviceId, user.ID, true); err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": fmt.Sprintf("Create session: %s", err.Error()),
-			})
+			return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 		}
 
 		return ctx.JSON(fiber.Map{"token": token})
 	} else {
 		var allowList []string = []string{"password", "qr", "code", "nfc", "otp"}
 
-		token, err := utils.GenerateTemporaryToken(user.ID, data.DeviceId, allowList)
+		// Gen token for step 2
+		token, err := utils.GenerateTemporaryToken(user.ID, data.DeviceId, data.DeviceName, allowList)
 		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error generating token"})
+			return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 		}
+
 		return ctx.Status(fiber.StatusAccepted).JSON(fiber.Map{"allow": allowList, "token": token})
 	}
 }

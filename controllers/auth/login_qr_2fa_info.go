@@ -1,10 +1,7 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
-	"vnuid-identity/databases"
 	"vnuid-identity/middlewares"
 	"vnuid-identity/utils"
 
@@ -20,31 +17,25 @@ func LoginByQr2FaInfo(ctx *fiber.Ctx) error {
 	var data LoginByQr2FaInfoRequest
 	userClaims := ctx.Locals("user").(*middlewares.TokenClaim)
 	if err, msg := utils.GetBodyData(ctx, &data); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON((fiber.Map{"error": err.Error(), "msg": msg}))
+		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
-	claims, err := utils.ParseQRToken(data.Token)
+	qrClaims, err := utils.ParseTemporaryToken(data.Token)
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return utils.ReturnError(ctx, fiber.StatusBadRequest, err)
 	}
 
-	if claims.UID != userClaims.UID {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid token params"})
+	// Verify
+	if qrClaims.UID != userClaims.UID {
+		return utils.ReturnErrorMsg(ctx, fiber.StatusBadRequest, "Invalid token params")
 	}
 
-	bgctx := context.Background()
-	val, err := databases.RD.Get(bgctx, fmt.Sprintf("%s%s", LOGIN_KEY, data.Session)).Result()
-
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	var content LoginByQr2FaRequest
-	err = json.Unmarshal([]byte(val), &content)
+	// extract session info
+	var content utils.TmpTokenData
+	err = json.Unmarshal([]byte(data.Token), &content)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	content.Token = ""
 	return ctx.Status(fiber.StatusOK).JSON(content)
 }

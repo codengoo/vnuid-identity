@@ -15,16 +15,15 @@ type SetAuthenticatorRequest struct {
 }
 
 func SetAuthenticator(ctx *fiber.Ctx) error {
-	var data SetAuthenticatorRequest
 	claims := ctx.Locals("user").(*middlewares.TokenClaim)
-
+	var data SetAuthenticatorRequest
 	if err, msg := utils.GetBodyData(ctx, &data); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON((fiber.Map{"error": err.Error(), "msg": msg}))
+		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
 	isValid, _ := models.VerifyPassword(claims.UID, data.Password)
 	if !isValid {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid password"})
+		return utils.ReturnErrorMsg(ctx, fiber.StatusUnauthorized, "Invalid password")
 	}
 
 	key, err := totp.Generate(totp.GenerateOpts{
@@ -33,16 +32,16 @@ func SetAuthenticator(ctx *fiber.Ctx) error {
 	})
 
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
 	png, err := qrcode.Encode(key.URL(), qrcode.Low, 256)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error generating QR code"})
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
 	if err := models.SetAuthenticator(claims.UID, key.Secret()); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
 	return ctx.Status(fiber.StatusOK).Send(png)

@@ -21,6 +21,7 @@ type TokenData struct {
 type TmpTokenData struct {
 	UID          string   `json:"uid"`
 	DeviceID     string   `json:"device_id"`
+	DeviceName   string   `json:"device_name"`
 	AllowMethods []string `json:"allow_methods"`
 }
 
@@ -54,11 +55,12 @@ func GenerateToken(user entities.User, deviceId string) (string, error) {
 	return token.SignedString([]byte(SECRET_KEY))
 }
 
-func GenerateTemporaryToken(uid string, deviceId string, allowMethod []string) (string, error) {
+func GenerateTemporaryToken(uid string, deviceId string, deviceName string, allowMethod []string) (string, error) {
 	var SECRET_KEY_2FA = os.Getenv("JWT_TOKEN_2FA")
 	claims := jwt.MapClaims{
 		"uid":           uid,
 		"device_id":     deviceId,
+		"device_name":   deviceName,
 		"allow_methods": allowMethod,
 	}
 

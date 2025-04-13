@@ -1,12 +1,8 @@
 package controllers
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"time"
-	"vnuid-identity/databases"
 	"vnuid-identity/middlewares"
+	"vnuid-identity/models"
 	"vnuid-identity/utils"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,43 +14,32 @@ type LoginByCode2FaAcceptRequest struct {
 }
 
 func LoginByCode2FaAccept(ctx *fiber.Ctx) error {
-	var data LoginByCode2FaAcceptRequest
 	userClaims := ctx.Locals("user").(*middlewares.TokenClaim)
+	var data LoginByCode2FaAcceptRequest
 
 	if err, msg := utils.GetBodyData(ctx, &data); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON((fiber.Map{"error": err.Error(), "msg": msg}))
+		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
-	bgctx := context.Background()
-	content_raw, err := databases.RD.Get(bgctx, fmt.Sprintf("%s%s", LOGIN_CODE_KEY, userClaims.UID)).Result()
+	content, err := models.GetLoginCodeSession(userClaims.UID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error getting session"})
-	}
-
-	var content LoginByCode2FaConfig
-	err = json.Unmarshal([]byte(content_raw), &content)
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error getting session"})
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
 	if content.Code != data.Code {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid code"})
+		return utils.ReturnErrorMsg(ctx, fiber.StatusBadRequest, "Invalid code")
 	}
 
-	content_new, err := json.Marshal(
-		LoginByQr2FaAcceptConfig{
+	// Set accept token
+	if err := models.SetLoginAcceptSession(
+		content.Session,
+		models.Login2FaAcceptConfig{
 			SaveDevice: data.SaveDevice,
-			DeviceID:   content.DeviceId,
-			UID:        userClaims.SID,
-		})
-
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error generating session"})
-	}
-
-	err = databases.RD.Set(bgctx, fmt.Sprintf("%s%s", LOGIN_ACCEPT_KEY, content.Session), content_new, 60*time.Second).Err()
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error generating session"})
+			DeviceID:   content.DeviceID,
+			UID:        userClaims.UID,
+		},
+	); err != nil {
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"message": "OK"})
