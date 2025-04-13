@@ -21,6 +21,7 @@ func LoginByCode2FaAccept(ctx *fiber.Ctx) error {
 		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
+	// extract thong tin tu redis
 	content, err := models.GetLoginCodeSession(userClaims.UID)
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)

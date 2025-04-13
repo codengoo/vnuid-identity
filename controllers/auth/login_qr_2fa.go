@@ -21,6 +21,7 @@ func LoginByQr2Fa(ctx *fiber.Ctx) error {
 		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
+	// Validate
 	claims, err := utils.ParseTemporaryToken(data.Token)
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusBadRequest, err)

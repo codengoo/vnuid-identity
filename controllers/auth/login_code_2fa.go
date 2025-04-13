@@ -22,13 +22,14 @@ func LoginByCode2Fa(ctx *fiber.Ctx) error {
 		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
+	// Validate
 	claims, err := utils.ParseTemporaryToken(data.Token)
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusBadRequest, err)
 	}
 
 	if !slices.Contains(claims.AllowMethods, "code") {
-		return utils.ReturnError(ctx, fiber.StatusBadRequest, fmt.Errorf("Invalid token params"))
+		return utils.ReturnError(ctx, fiber.StatusBadRequest, fmt.Errorf("invalid token params"))
 	}
 
 	// Set session
@@ -37,6 +38,7 @@ func LoginByCode2Fa(ctx *fiber.Ctx) error {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
+	// Create tmp storage to validate later
 	code := utils.RandomInRange(10, 99)
 	if err := models.SetLoginCodeSession(
 		claims.UID,

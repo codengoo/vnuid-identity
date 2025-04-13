@@ -24,6 +24,7 @@ func LoginByQr2FaAccept(ctx *fiber.Ctx) error {
 		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
+	// Extract thong tin tu client
 	qrClaims, err := utils.ParseTemporaryToken(data.Token)
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusBadRequest, err)
