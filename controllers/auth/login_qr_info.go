@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"vnuid-identity/middlewares"
 	"vnuid-identity/utils"
 
@@ -9,11 +8,10 @@ import (
 )
 
 type LoginByQr2FaInfoRequest struct {
-	Token   string `json:"token" validate:"required"`
-	Session string `json:"session" validate:"required"`
+	Token string `json:"token" validate:"required"`
 }
 
-func LoginByQr2FaInfo(ctx *fiber.Ctx) error {
+func LoginByQrInfo(ctx *fiber.Ctx) error {
 	var data LoginByQr2FaInfoRequest
 	userClaims := ctx.Locals("user").(*middlewares.TokenClaim)
 	if err, msg := utils.GetBodyData(ctx, &data); err != nil {
@@ -25,9 +23,8 @@ func LoginByQr2FaInfo(ctx *fiber.Ctx) error {
 		return utils.ReturnError(ctx, fiber.StatusBadRequest, err)
 	}
 
-	// Verify
-	fmt.Println(qrClaims.UID, userClaims.UID)
-	if qrClaims.UID != userClaims.UID {
+	// Verify: If Scan directly or step-2 must has valid uid
+	if len(qrClaims.AllowMethods) != 0 && qrClaims.UID != userClaims.UID {
 		return utils.ReturnErrorMsg(ctx, fiber.StatusBadRequest, "Invalid token params")
 	}
 

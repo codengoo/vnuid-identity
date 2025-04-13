@@ -16,7 +16,7 @@ type LoginQr2FaAcceptRequest struct {
 
 var LOGIN_ACCEPT_KEY = "qr:login:accept:"
 
-func LoginByQr2FaAccept(ctx *fiber.Ctx) error {
+func LoginByQrAccept(ctx *fiber.Ctx) error {
 	userClaims := ctx.Locals("user").(*middlewares.TokenClaim)
 	var data LoginQr2FaAcceptRequest
 
@@ -30,7 +30,7 @@ func LoginByQr2FaAccept(ctx *fiber.Ctx) error {
 		return utils.ReturnError(ctx, fiber.StatusBadRequest, err)
 	}
 
-	if qrClaims.UID != userClaims.UID {
+	if len(qrClaims.AllowMethods) != 0 && qrClaims.UID != userClaims.UID {
 		return utils.ReturnErrorMsg(ctx, fiber.StatusBadRequest, "Invalid token params")
 	}
 
@@ -40,7 +40,7 @@ func LoginByQr2FaAccept(ctx *fiber.Ctx) error {
 		models.Login2FaAcceptConfig{
 			SaveDevice: data.SaveDevice,
 			DeviceID:   qrClaims.DeviceID,
-			UID:        qrClaims.UID,
+			UID:        userClaims.UID,
 			Method:     qrClaims.Method,
 		},
 	); err != nil {

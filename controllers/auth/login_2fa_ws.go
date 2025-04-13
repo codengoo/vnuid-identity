@@ -24,7 +24,7 @@ func sendMessage(ctx *websocket.Conn, text string) {
 	}
 }
 
-func ListenLogin2FA(ctx *websocket.Conn) {
+func ListenLogin(ctx *websocket.Conn) {
 	defer func() {
 		fmt.Println("Client disconnected")
 		ctx.Close()

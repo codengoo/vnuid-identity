@@ -35,11 +35,11 @@ func SetupRoutes(app *fiber.App) {
 	authCtrl.Post("/login_otp_2fa", authController.LoginByOtp2Fa)
 	authCtrl.Post("/login_nfc_2fa", authController.LoginByNFC2Fa)
 	authCtrl.Post("/login_qr_2fa", authController.LoginByQr2Fa)
-	authCtrl.Post("/login_qr_2fa_info", middlewares.AuthCheck(AUTH), authController.LoginByQr2FaInfo)
-	authCtrl.Post("/login_qr_2fa_accept", middlewares.AuthCheck(AUTH), authController.LoginByQr2FaAccept)
 	authCtrl.Post("/login_code_2fa", middlewares.AuthCheck(AUTH), authController.LoginByCode2Fa)
 	authCtrl.Post("/login_code_2fa_accept", middlewares.AuthCheck(AUTH), authController.LoginByCode2FaAccept)
 
+	authCtrl.Post("/login_qr_accept", middlewares.AuthCheck(AUTH), authController.LoginByQrAccept)
+	authCtrl.Post("/login_qr_info", middlewares.AuthCheck(AUTH), authController.LoginByQrInfo)
 	authCtrl.Post("set_authenticator", middlewares.AuthCheck(AUTH), authController.SetAuthenticator)
 
 	app.Use("/ws", func(ctx *fiber.Ctx) error {
@@ -48,5 +48,5 @@ func SetupRoutes(app *fiber.App) {
 		}
 		return fiber.ErrUpgradeRequired
 	})
-	app.Get("/ws/login/:session", websocket.New(authController.ListenLogin2FA))
+	app.Get("/ws/login/:session", websocket.New(authController.ListenLogin))
 }

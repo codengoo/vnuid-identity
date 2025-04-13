@@ -12,8 +12,6 @@ type LoginByQr2FaRequest struct {
 	Token string `json:"token" validate:"required"`
 }
 
-var LOGIN_KEY = "qr:login:"
-
 func LoginByQr2Fa(ctx *fiber.Ctx) error {
 	var data LoginByQr2FaRequest
 
