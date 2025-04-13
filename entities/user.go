@@ -19,6 +19,7 @@ type User struct {
 	OfficialClass string    `json:"official_class" gorm:"not null"`
 	Type          string    `json:"type" gorm:"not null"`
 	Authenticator string    `json:"authenticator"`
+	BiometricKey  string    `json:"biometric_key"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 

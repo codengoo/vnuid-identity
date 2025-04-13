@@ -142,6 +142,23 @@ func SetAuthenticator(id string, authenticator string) error {
 	return nil
 }
 
+func SetBiometric(id string) error {
+	user, err := GetUser(id)
+
+	if err != nil {
+		return err
+	}
+
+	user.BiometricKey = uuid.New().String()
+	result := databases.DB.Save(&user)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
 func VerifyAuthenticator(id string, code string) (bool, entities.User) {
 	user, err := GetUser(id)
 
@@ -172,4 +189,24 @@ func VerifyNFC(id string, code string) (bool, entities.User) {
 	} else {
 		return true, user
 	}
+}
+
+func VerifyBioCode(id string, code string) (bool, entities.User) {
+	user, err := GetUser(id)
+	if err != nil {
+		return false, entities.User{}
+	}
+
+	bioCode := user.BiometricKey
+	uid, _, err := utils.DecryptPayload(bioCode, code)
+
+	if err != nil {
+		return false, entities.User{}
+	}
+
+	if uid != user.ID {
+		return false, entities.User{}
+	}
+
+	return true, user
 }
