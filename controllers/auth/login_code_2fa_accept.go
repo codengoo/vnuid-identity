@@ -37,6 +37,7 @@ func LoginByCode2FaAccept(ctx *fiber.Ctx) error {
 		models.Login2FaAcceptConfig{
 			SaveDevice: data.SaveDevice,
 			DeviceID:   content.DeviceID,
+			Method:     content.Method,
 			UID:        userClaims.UID,
 		},
 	); err != nil {

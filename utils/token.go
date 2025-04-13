@@ -23,6 +23,7 @@ type TmpTokenData struct {
 	DeviceID     string   `json:"device_id"`
 	DeviceName   string   `json:"device_name"`
 	AllowMethods []string `json:"allow_methods"`
+	Method       string   `json:"method"`
 }
 
 type QRTokenData struct {
@@ -55,24 +56,14 @@ func GenerateToken(user entities.User, deviceId string) (string, error) {
 	return token.SignedString([]byte(SECRET_KEY))
 }
 
-func GenerateTemporaryToken(uid string, deviceId string, deviceName string, allowMethod []string) (string, error) {
+func GenerateTemporaryToken(data TmpTokenData) (string, error) {
 	var SECRET_KEY_2FA = os.Getenv("JWT_TOKEN_2FA")
 	claims := jwt.MapClaims{
-		"uid":           uid,
-		"device_id":     deviceId,
-		"device_name":   deviceName,
-		"allow_methods": allowMethod,
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(SECRET_KEY_2FA))
-}
-
-func GenerateQRToken(uid string, deviceId string) (string, error) {
-	var SECRET_KEY_2FA = os.Getenv("JWT_TOKEN_2FA")
-	claims := jwt.MapClaims{
-		"uid":       uid,
-		"device_id": deviceId,
+		"uid":           data.UID,
+		"device_id":     data.DeviceID,
+		"device_name":   data.DeviceName,
+		"allow_methods": data.AllowMethods,
+		"method":        data.Method,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -97,29 +88,6 @@ func ParseTemporaryToken(tokenString string) (TmpTokenClaim, error) {
 	claims, ok := token.Claims.(*TmpTokenClaim)
 	if !ok {
 		return TmpTokenClaim{}, fmt.Errorf("cannot parse token claims")
-	}
-
-	return *claims, nil
-}
-
-func ParseQRToken(tokenString string) (QRTokenClaim, error) {
-	var SECRET_KEY_2FA = os.Getenv("JWT_TOKEN_2FA")
-	token, err := jwt.ParseWithClaims(tokenString, &QRTokenClaim{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fiber.ErrUnauthorized
-		}
-
-		// check more here
-		return []byte(SECRET_KEY_2FA), nil
-	})
-
-	if err != nil || !token.Valid {
-		return QRTokenClaim{}, err
-	}
-
-	claims, ok := token.Claims.(*QRTokenClaim)
-	if !ok {
-		return QRTokenClaim{}, fmt.Errorf("cannot parse token claims")
 	}
 
 	return *claims, nil

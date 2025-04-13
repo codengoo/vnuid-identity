@@ -41,6 +41,7 @@ func LoginByQr2FaAccept(ctx *fiber.Ctx) error {
 			SaveDevice: data.SaveDevice,
 			DeviceID:   qrClaims.DeviceID,
 			UID:        qrClaims.UID,
+			Method:     qrClaims.Method,
 		},
 	); err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)

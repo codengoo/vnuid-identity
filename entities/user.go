@@ -22,6 +22,6 @@ type User struct {
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 
-	Sessions []Session `json:"sessions" gorm:"foreignKey:UserId"`
-	Nfcs     []NFC     `json:"nfcs" gorm:"foreignKey:UserId"`
+	Sessions []Session `json:"sessions" gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE;"`
+	Nfcs     []NFC     `json:"nfcs" gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE;"`
 }

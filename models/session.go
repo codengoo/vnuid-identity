@@ -7,10 +7,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func CreateSession(device_id string, uid string, saved bool) (string, error) {
+func CreateSession(device_id string, uid string, saved bool, method string) (string, error) {
 	session := entities.Session{
 		DeviceId:    device_id,
-		LoginMethod: "google",
+		LoginMethod: method,
 		SavedDevice: saved,
 		UserId:      uid,
 		ID:          uuid.New().String(),

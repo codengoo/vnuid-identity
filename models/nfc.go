@@ -52,6 +52,6 @@ func AddManyNFC(users []entities.User) ([]entities.NFC, error) {
 }
 
 func SetActiveNFC(id string, active bool) error {
-	result := databases.DB.Model(&entities.NFC{}).Where("id = ? OR user_id = ?", id, id).Update("active", active)
+	result := databases.DB.Model(&entities.NFC{}).Where("id = ?", id).Update("active", active)
 	return result.Error
 }

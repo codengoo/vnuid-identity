@@ -37,7 +37,7 @@ func LoginByNFC2Fa(ctx *fiber.Ctx) error {
 	}
 
 	// Generate token
-	token, err := helpers.AddLoginSession(user, claims.DeviceID, data.SaveDevice)
+	token, err := helpers.AddLoginSession(user, claims.DeviceID, data.SaveDevice, claims.Method)
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}

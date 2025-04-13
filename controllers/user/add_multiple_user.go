@@ -2,10 +2,11 @@ package controllers
 
 import (
 	"bytes"
-	"fmt"
 	"io"
+	"strconv"
 	"vnuid-identity/entities"
 	"vnuid-identity/models"
+	"vnuid-identity/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/tealeg/xlsx"
@@ -22,8 +23,8 @@ type AddMultipleUserRequest struct {
 
 func AddMultipleUsers(ctx *fiber.Ctx) error {
 	batchSize := 100
-	file, err := ctx.FormFile("file")
 
+	file, err := ctx.FormFile("file")
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "error detach file from request"})
 	}
@@ -31,7 +32,7 @@ func AddMultipleUsers(ctx *fiber.Ctx) error {
 	// Open the file
 	fileContent, err := file.Open()
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "error opening file"})
+		return utils.ReturnErrorMsg(ctx, fiber.StatusInternalServerError, "error opening file")
 	}
 	defer fileContent.Close()
 
@@ -39,18 +40,17 @@ func AddMultipleUsers(ctx *fiber.Ctx) error {
 	fileBytes := bytes.NewBuffer(nil)
 	_, err = io.Copy(fileBytes, fileContent)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "error reading file content"})
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
 	// create excel object to handle from this buffer
 	excelFile, err := xlsx.OpenBinary(fileBytes.Bytes())
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "error reading file content"})
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
 	sheet := excelFile.Sheets[0]
 	var users []entities.User
-	fmt.Print(len(sheet.Rows))
 	for i, row := range sheet.Rows {
 		if i == 0 {
 			continue // skip header row
@@ -58,27 +58,27 @@ func AddMultipleUsers(ctx *fiber.Ctx) error {
 
 		var data AddMultipleUserRequest
 		if err := row.ReadStruct(&data); err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": fmt.Sprintf("error reading row %d", i)})
+			return utils.ReturnErrorMsg(ctx, fiber.StatusInternalServerError, "error reading row: "+strconv.Itoa(i))
 		}
 
-		user := entities.User{
-			Email:         data.Email,
-			Sid:           data.SID,
-			Gid:           data.GID,
-			Name:          data.Name,
-			OfficialClass: data.OfficialClass,
-			Type:          data.Type,
-		}
-		users = append(users, user)
+		users = append(users,
+			entities.User{
+				Email:         data.Email,
+				Sid:           data.SID,
+				Gid:           data.GID,
+				Name:          data.Name,
+				OfficialClass: data.OfficialClass,
+				Type:          data.Type,
+			})
 
 		if len(users) == batchSize || i == len(sheet.Rows)-1 {
 			xusr, err := models.AddManyUser(users)
 			if err != nil {
-				return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+				return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 			}
 
 			if _, err := models.AddManyNFC(xusr); err != nil {
-				return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+				return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 			}
 
 			users = []entities.User{}

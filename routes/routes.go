@@ -27,19 +27,19 @@ func SetupRoutes(app *fiber.App) {
 	userCtrl.Post("/add_many", middlewares.AuthCheck(ADMIN), userController.AddMultipleUsers)
 	userCtrl.Delete("/remove_many", middlewares.AuthCheck(ADMIN), userController.RemoveMultipleUsers)
 
-	authCtrl.Post("/login_pass", authController.Login)
 	authCtrl.Post("/login_google", authController.LoginByGoogle)
+	authCtrl.Post("/login_pass", authController.LoginByPass)
+
 	authCtrl.Post("/login_pass_2fa", authController.LoginByPass2Fa)
 	authCtrl.Post("/login_otp_2fa", authController.LoginByOtp2Fa)
 	authCtrl.Post("/login_nfc_2fa", authController.LoginByNFC2Fa)
 	authCtrl.Post("/login_qr_2fa", authController.LoginByQr2Fa)
 	authCtrl.Post("/login_qr_2fa_info", middlewares.AuthCheck(AUTH), authController.LoginByQr2FaInfo)
 	authCtrl.Post("/login_qr_2fa_accept", middlewares.AuthCheck(AUTH), authController.LoginByQr2FaAccept)
+	authCtrl.Post("/login_code_2fa", middlewares.AuthCheck(AUTH), authController.LoginByCode2Fa)
+	authCtrl.Post("/login_code_2fa_accept", middlewares.AuthCheck(AUTH), authController.LoginByCode2FaAccept)
 
 	authCtrl.Post("set_authenticator", middlewares.AuthCheck(AUTH), authController.SetAuthenticator)
-
-	authCtrl.Get("/get_qr", authController.GetQR)
-	authCtrl.Post("/verify_qr", middlewares.AuthCheck(AUTH), authController.VerifyQR)
 
 	app.Use("/ws", func(ctx *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(ctx) {

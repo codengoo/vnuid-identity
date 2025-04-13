@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"vnuid-identity/models"
+	"vnuid-identity/utils"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -11,7 +12,7 @@ func ActivateNFC(ctx *fiber.Ctx) error {
 	active := ctx.Query("active")
 	err := models.SetActiveNFC(id, active == "true")
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Success"})

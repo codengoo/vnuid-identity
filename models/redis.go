@@ -13,12 +13,14 @@ import (
 type Login2FaAcceptConfig struct {
 	SaveDevice bool   `json:"save_device"`
 	DeviceID   string `json:"device_id"`
+	Method     string `json:"method"`
 	UID        string `json:"uid"`
 }
 
 type LoginByCode2FaConfig struct {
 	Code     int    `json:"code" validate:"required"`
 	Session  string `json:"session" validate:"required"`
+	Method   string `json:"method" validate:"required"`
 	DeviceID string `json:"device_id"`
 }
 

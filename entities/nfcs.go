@@ -10,5 +10,5 @@ type NFC struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
-	User User `json:"user" gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	User User `json:"user" gorm:""`
 }

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"slices"
 	"vnuid-identity/helpers"
 	"vnuid-identity/models"
@@ -27,6 +28,7 @@ func LoginByPass2Fa(ctx *fiber.Ctx) error {
 	}
 
 	// Validate
+	fmt.Println(claims.AllowMethods)
 	if !slices.Contains(claims.AllowMethods, "pass") {
 		return utils.ReturnErrorMsg(ctx, fiber.StatusUnauthorized, "Invalid token params")
 	}
@@ -37,7 +39,7 @@ func LoginByPass2Fa(ctx *fiber.Ctx) error {
 	}
 
 	// Create token
-	token, err := helpers.AddLoginSession(user, claims.DeviceID, data.SaveDevice)
+	token, err := helpers.AddLoginSession(user, claims.DeviceID, data.SaveDevice, claims.Method)
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}

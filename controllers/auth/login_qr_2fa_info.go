@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"encoding/json"
+	"fmt"
 	"vnuid-identity/middlewares"
 	"vnuid-identity/utils"
 
@@ -26,16 +26,15 @@ func LoginByQr2FaInfo(ctx *fiber.Ctx) error {
 	}
 
 	// Verify
+	fmt.Println(qrClaims.UID, userClaims.UID)
 	if qrClaims.UID != userClaims.UID {
 		return utils.ReturnErrorMsg(ctx, fiber.StatusBadRequest, "Invalid token params")
 	}
 
 	// extract session info
-	var content utils.TmpTokenData
-	err = json.Unmarshal([]byte(data.Token), &content)
+	result, err := utils.ParseTemporaryToken(data.Token)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
-
-	return ctx.Status(fiber.StatusOK).JSON(content)
+	return ctx.Status(fiber.StatusOK).JSON(result)
 }

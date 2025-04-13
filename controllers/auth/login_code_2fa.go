@@ -46,6 +46,7 @@ func LoginByCode2Fa(ctx *fiber.Ctx) error {
 			Code:     code,
 			Session:  session,
 			DeviceID: claims.DeviceID,
+			Method:   claims.Method,
 		},
 	); err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)

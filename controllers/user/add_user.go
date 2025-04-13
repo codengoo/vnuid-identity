@@ -20,25 +20,24 @@ type AddUserRequest struct {
 func AddUser(ctx *fiber.Ctx) error {
 	var data AddUserRequest
 	if err, msg := utils.GetBodyData(ctx, &data); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON((fiber.Map{"error": err.Error(), "msg": msg}))
+		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
-	user := entities.User{
-		Type:          data.Type,
-		Email:         data.Email,
-		Sid:           data.SID,
-		Gid:           data.GID,
-		Name:          data.Name,
-		OfficialClass: data.OfficialClass,
-	}
-
-	user, err := models.AddUser(user)
+	user, err := models.AddUser(
+		entities.User{
+			Type:          data.Type,
+			Email:         data.Email,
+			Sid:           data.SID,
+			Gid:           data.GID,
+			Name:          data.Name,
+			OfficialClass: data.OfficialClass,
+		})
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
 	if _, err := models.AddNFC(user.ID); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
 	return ctx.JSON(fiber.Map{"data": user})

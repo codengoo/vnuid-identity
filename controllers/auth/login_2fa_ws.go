@@ -8,13 +8,13 @@ import (
 	"github.com/gofiber/websocket/v2"
 )
 
-func genToken(uid string, deviceId string, save bool) (string, error) {
+func genToken(uid string, deviceId string, save bool, method string) (string, error) {
 	user, err := models.GetUser(uid)
 	if err != nil {
 		return "", fmt.Errorf("user not found")
 	}
 
-	return helpers.AddLoginSession(user, deviceId, save)
+	return helpers.AddLoginSession(user, deviceId, save, method)
 }
 
 func sendMessage(ctx *websocket.Conn, text string) {
@@ -40,10 +40,8 @@ func ListenLogin2FA(ctx *websocket.Conn) {
 
 	for {
 		content, err := models.GetLoginAcceptSession(session)
-		if err != nil {
-			sendMessage(ctx, err.Error())
-		} else {
-			token, err := genToken(content.UID, content.DeviceID, content.SaveDevice)
+		if err == nil {
+			token, err := genToken(content.UID, content.DeviceID, content.SaveDevice, content.Method)
 			if err != nil {
 				sendMessage(ctx, err.Error())
 			}
