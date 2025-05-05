@@ -44,7 +44,7 @@ type QRTokenClaim struct {
 func GenerateToken(user entities.User, deviceId string) (string, error) {
 	var SECRET_KEY = os.Getenv("JWT_TOKEN")
 	claims := jwt.MapClaims{
-		"uid": user.ID,
+		"uid": user.ProfileId,
 		"sid": user.Sid,
 		// "name":      user.Name,
 		"email":     user.Email,

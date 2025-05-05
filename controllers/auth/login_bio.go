@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"vnuid-identity/entities"
 	"vnuid-identity/helpers"
 	"vnuid-identity/models"
 	"vnuid-identity/utils"
@@ -27,7 +28,12 @@ func LoginByBio(ctx *fiber.Ctx) error {
 	}
 
 	// Generate token
-	token, err := helpers.AddLoginSession(user, data.DeviceId, true, "nfc")
+	token, err := helpers.AddLoginSession(user, entities.Session{
+		DeviceId:    data.DeviceId,
+		DeviceName:  data.DeviceName,
+		LoginMethod: "bio",
+		SavedDevice: true,
+	})
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}

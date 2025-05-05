@@ -51,38 +51,6 @@ func RemoveUsers(input []string) error {
 	return nil
 }
 
-func AddManyUser(input []entities.User) ([]entities.User, error) {
-	type Result struct {
-		User entities.User
-		Err  error
-	}
-	ch := make(chan Result, len(input))
-
-	// Create routines
-	for _, u := range input {
-		go func(data entities.User) {
-			pass, err := utils.GeneratePassword()
-			data.ID = uuid.New().String()
-			data.Password = pass
-			ch <- Result{User: data, Err: err}
-		}(u)
-	}
-
-	var users []entities.User
-	for range input {
-		res := <-ch
-		if res.Err != nil {
-			return []entities.User{}, fmt.Errorf("failed to generate password")
-		}
-		users = append(users, res.User)
-	}
-	if result := databases.DB.CreateInBatches(&users, 50); result.Error != nil {
-		return []entities.User{}, fmt.Errorf("failed to create users: %v", result.Error)
-	}
-
-	return users, nil
-}
-
 func AddUser(input entities.User) (entities.User, error) {
 	password, err := utils.GeneratePassword()
 	if err != nil {

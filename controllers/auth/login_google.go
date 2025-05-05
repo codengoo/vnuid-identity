@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"vnuid-identity/entities"
 	"vnuid-identity/helpers"
 	"vnuid-identity/models"
 	"vnuid-identity/utils"
@@ -56,7 +57,12 @@ func LoginByGoogle(ctx *fiber.Ctx) error {
 	isActive := models.CheckSession(data.DeviceId, user.ID)
 	if isActive {
 		// Generate token
-		token, err := helpers.AddLoginSession(user, data.DeviceId, true, "google")
+		token, err := helpers.AddLoginSession(user, entities.Session{
+			DeviceId:    data.DeviceId,
+			DeviceName:  data.DeviceName,
+			LoginMethod: "google",
+			SavedDevice: true,
+		})
 		if err != nil {
 			return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 		}

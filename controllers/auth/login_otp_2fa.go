@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"slices"
+	"vnuid-identity/entities"
 	"vnuid-identity/helpers"
 	"vnuid-identity/models"
 	"vnuid-identity/utils"
@@ -37,7 +38,12 @@ func LoginByOtp2Fa(ctx *fiber.Ctx) error {
 	}
 
 	// Generate token
-	token, err := helpers.AddLoginSession(user, claims.DeviceID, data.SaveDevice, claims.Method)
+	token, err := helpers.AddLoginSession(user, entities.Session{
+		DeviceId:    claims.DeviceID,
+		DeviceName:  claims.DeviceName,
+		LoginMethod: claims.Method,
+		SavedDevice: data.SaveDevice,
+	})
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
