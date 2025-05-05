@@ -1,7 +1,5 @@
 package entities
 
-import "time"
-
 type Session struct {
 	ID          string `json:"id" gorm:"primaryKey;type:uuid;"`
 	DeviceId    string `json:"device_id" gorm:"not null"`
@@ -11,8 +9,6 @@ type Session struct {
 	SavedDevice bool   `json:"saved_device" gorm:"not null"`
 	// IpAddress   string    `json:"ip_address" gorm:"not null"`
 	// Location    string    `json:"location" gorm:"not null"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
 
 	User User `json:"user" gorm:""`
 }

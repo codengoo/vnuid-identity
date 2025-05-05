@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"vnuid-identity/databases"
@@ -16,10 +15,6 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
 	}
-
-	dba := os.Getenv("DATABASE_URL")
-	fmt.Println("Port: ", dba)
-	fmt.Println("Setup env successfully")
 }
 
 func main() {

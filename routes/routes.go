@@ -24,7 +24,6 @@ func SetupRoutes(app *fiber.App) {
 	nfcCtrl.Put("/activate/:id", middlewares.AuthCheck(ADMIN), nfcController.ActivateNFC)
 
 	userCtrl.Post("/add", middlewares.AuthCheck(ADMIN), userController.AddUser)
-	userCtrl.Post("/add_many", middlewares.AuthCheck(ADMIN), userController.AddMultipleUsers)
 	userCtrl.Delete("/remove_many", middlewares.AuthCheck(ADMIN), userController.RemoveMultipleUsers)
 
 	authCtrl.Post("/login_google", authController.LoginByGoogle)

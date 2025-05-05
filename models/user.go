@@ -90,20 +90,37 @@ func AddUser(input entities.User) (entities.User, error) {
 	}
 
 	user := entities.User{
-		Type:          input.Type,
-		Email:         input.Email,
-		Sid:           input.Sid,
-		Gid:           input.Gid,
-		Name:          input.Name,
-		OfficialClass: input.OfficialClass,
-		ID:            uuid.New().String(),
-		Password:      password,
+		Type:      input.Type,
+		Email:     input.Email,
+		Sid:       input.Sid,
+		Gid:       input.Gid,
+		ID:        uuid.New().String(),
+		Password:  password,
+		ProfileId: input.ProfileId,
 	}
 
 	result := databases.DB.Create(&user)
 
 	if result.Error != nil {
 		return entities.User{}, fmt.Errorf("failed to create user: %v", result.Error)
+	}
+
+	return user, nil
+}
+
+func AddUserInfo(input entities.Profile) (entities.Profile, error) {
+	user := entities.Profile{
+		ID:            uuid.New().String(),
+		DOB:           input.DOB,
+		Email:         input.Email,
+		OfficialClass: input.OfficialClass,
+		Name:          input.Name,
+		Sid:           input.Sid,
+	}
+
+	result := databases.DB.Create(&user)
+	if result.Error != nil {
+		return entities.Profile{}, fmt.Errorf("failed to create user: %v", result.Error)
 	}
 
 	return user, nil

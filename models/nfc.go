@@ -16,8 +16,8 @@ func CountActiveNFC(uid string) int64 {
 
 func AddNFC(uid string) (string, error) {
 	nfc := entities.NFC{
-		UserId: uid,
 		ID:     uuid.New().String(),
+		UserId: uid,
 		Active: true,
 		Status: "pending_release",
 	}

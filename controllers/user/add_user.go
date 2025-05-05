@@ -23,20 +23,32 @@ func AddUser(ctx *fiber.Ctx) error {
 		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
-	user, err := models.AddUser(
-		entities.User{
-			Type:          data.Type,
-			Email:         data.Email,
-			Sid:           data.SID,
-			Gid:           data.GID,
+	profile, err := models.AddUserInfo(
+		entities.Profile{
 			Name:          data.Name,
+			Sid:           data.SID,
+			Email:         data.Email,
 			OfficialClass: data.OfficialClass,
+			DOB:           nil,
 		})
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	if _, err := models.AddNFC(user.ID); err != nil {
+	user, err := models.AddUser(
+		entities.User{
+			Type:      data.Type,
+			Email:     data.Email,
+			Sid:       data.SID,
+			Gid:       data.GID,
+			ProfileId: profile.ID,
+		})
+	if err != nil {
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	_, err = models.AddNFC(user.ID)
+	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
