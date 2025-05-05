@@ -1,13 +1,11 @@
 package controllers
 
 import (
-	"fmt"
-	"vnuid-identity/databases"
+	"vnuid-identity/entities"
 	"vnuid-identity/models"
 	"vnuid-identity/utils"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 type AddUserRequest struct {
@@ -21,37 +19,37 @@ type AddUserRequest struct {
 
 func AddUser(ctx *fiber.Ctx) error {
 	var data AddUserRequest
-
-	if err := ctx.BodyParser(&data); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	if err, msg := utils.GetBodyData(ctx, &data); err != nil {
+		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
-	if msgs := utils.Validate(&data); msgs != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid args", "msgs": msgs})
-	}
-
-	password, err := utils.GeneratePassword()
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate password"})
-	}
-
-	user := models.User{
-		Type:          data.Type,
-		Email:         data.Email,
-		SID:           data.SID,
-		GID:           data.GID,
-		Name:          data.Name,
-		OfficialClass: data.OfficialClass,
-		ID:            uuid.New().String(),
-		Password:      password,
-	}
-
-	result := databases.DB.Create(&user)
-
-	if result.Error != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": fmt.Sprintf("Create user failed with message: %s", result.Error.Error()),
+	profile, err := models.AddUserInfo(
+		entities.Profile{
+			Name:          data.Name,
+			Sid:           data.SID,
+			Email:         data.Email,
+			OfficialClass: data.OfficialClass,
+			DOB:           nil,
 		})
+	if err != nil {
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	user, err := models.AddUser(
+		entities.User{
+			Type:      data.Type,
+			Email:     data.Email,
+			Sid:       data.SID,
+			Gid:       data.GID,
+			ProfileId: profile.ID,
+		})
+	if err != nil {
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	_, err = models.AddNFC(user.ID)
+	if err != nil {
+		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
 	return ctx.JSON(fiber.Map{"data": user})

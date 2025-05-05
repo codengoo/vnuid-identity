@@ -1,8 +1,9 @@
 package middlewares
 
 import (
-	"fmt"
 	"os"
+	"slices"
+	"strings"
 	"vnuid-identity/utils"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,11 +15,12 @@ type TokenClaim struct {
 	jwt.RegisteredClaims
 }
 
-func AuthCheck(roleRef string) fiber.Handler {
+func AuthCheck(roleRef []string) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		secretKey := os.Getenv("JWT_TOKEN")
 		tokenString := ctx.Get("Authorization")
-		fmt.Println(tokenString)
+		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+
 		if tokenString == "" {
 			return ctx.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
 		}
@@ -29,7 +31,7 @@ func AuthCheck(roleRef string) fiber.Handler {
 			}
 
 			role := token.Claims.(*TokenClaim).Role
-			if role != roleRef {
+			if !slices.Contains(roleRef, role) {
 				return nil, fiber.ErrUnauthorized
 			}
 
@@ -38,7 +40,7 @@ func AuthCheck(roleRef string) fiber.Handler {
 		})
 
 		if err != nil || !token.Valid {
-			return ctx.Status(fiber.StatusUnauthorized).SendString("Invalid or expired token")
+			return ctx.Status(fiber.StatusUnauthorized).SendString(err.Error())
 		}
 
 		ctx.Locals("user", token.Claims)

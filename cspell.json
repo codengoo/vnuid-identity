@@ -4,6 +4,12 @@
     "dictionaryDefinitions": [],
     "dictionaries": [],
     "words": [
+        "bgctx",
+        "gorm",
+        "nfcs",
+        "qrcode",
+        "totp",
+        "uids",
         "vnuid"
     ],
     "ignoreWords": [],
