@@ -183,13 +183,7 @@ func VerifyBioCode(id string, code string) (bool, entities.User) {
 	}
 
 	bioCode := user.BiometricKey
-	uid, _, err := utils.DecryptPayload(bioCode, code)
-
-	if err != nil {
-		return false, entities.User{}
-	}
-
-	if uid != user.ID {
+	if bioCode != code {
 		return false, entities.User{}
 	}
 

@@ -42,7 +42,7 @@ func LoginByPass(ctx *fiber.Ctx) error {
 			return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 		}
 
-		return ctx.JSON(fiber.Map{"token": token})
+		return ctx.JSON(fiber.Map{"token": token, "uid": user.ProfileId})
 	} else {
 		var allowList []string = []string{"qr", "code", "nfc", "otp"}
 
@@ -59,6 +59,10 @@ func LoginByPass(ctx *fiber.Ctx) error {
 			return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 		}
 
-		return ctx.Status(fiber.StatusAccepted).JSON(fiber.Map{"allow": allowList, "token": token})
+		return ctx.Status(fiber.StatusAccepted).JSON(fiber.Map{
+			"allow": allowList,
+			"token": token,
+			"uid":   user.ProfileId,
+		})
 	}
 }

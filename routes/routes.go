@@ -29,6 +29,7 @@ func SetupRoutes(app *fiber.App) {
 	authCtrl.Post("/login_google", authController.LoginByGoogle)
 	authCtrl.Post("/login_pass", authController.LoginByPass)
 	authCtrl.Post("/login_nfc", authController.LoginByNFC)
+	authCtrl.Post("/login_bio", authController.LoginByBio)
 
 	authCtrl.Post("/login_pass_2fa", authController.LoginByPass2Fa)
 	authCtrl.Post("/login_otp_2fa", authController.LoginByOtp2Fa)

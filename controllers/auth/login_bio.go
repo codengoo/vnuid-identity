@@ -24,7 +24,7 @@ func LoginByBio(ctx *fiber.Ctx) error {
 
 	valid, user := models.VerifyBioCode(data.UID, data.BioCode)
 	if !valid {
-		return utils.ReturnErrorMsg(ctx, fiber.StatusUnauthorized, "invalid nfc code")
+		return utils.ReturnErrorMsg(ctx, fiber.StatusUnauthorized, "invalid bio code")
 	}
 
 	// Generate token
@@ -38,5 +38,5 @@ func LoginByBio(ctx *fiber.Ctx) error {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return ctx.JSON(fiber.Map{"token": token})
+	return ctx.JSON(fiber.Map{"token": token, "uid": user.ProfileId})
 }
