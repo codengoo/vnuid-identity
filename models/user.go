@@ -20,7 +20,7 @@ func GetUser(id string) (entities.User, error) {
 	var user entities.User
 	var result *gorm.DB
 	if isUUID(id) {
-		result = databases.DB.Model(&entities.User{}).Where("id = ?", id).First(&user)
+		result = databases.DB.Model(&entities.User{}).Where("id = ? OR profile_id = ?", id, id).First(&user)
 	} else {
 		result = databases.DB.Model(&entities.User{}).Where("email = ? OR sid = ? OR gid = ?", id, id, id).First(&user)
 	}
@@ -127,21 +127,21 @@ func SetAuthenticator(id string, authenticator string) error {
 	return nil
 }
 
-func SetBiometric(id string) error {
+func SetBiometric(id string) (string, error) {
 	user, err := GetUser(id)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	user.BiometricKey = uuid.New().String()
 	result := databases.DB.Save(&user)
 
 	if result.Error != nil {
-		return result.Error
+		return "", result.Error
 	}
 
-	return nil
+	return user.BiometricKey, nil
 }
 
 func VerifyAuthenticator(id string, code string) (bool, entities.User) {

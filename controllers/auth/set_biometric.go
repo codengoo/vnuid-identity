@@ -24,9 +24,10 @@ func SetBiometric(ctx *fiber.Ctx) error {
 		return utils.ReturnErrorMsg(ctx, fiber.StatusUnauthorized, "Invalid password")
 	}
 
-	if err := models.SetBiometric(userClaims.UID); err != nil {
+	key, err := models.SetBiometric(userClaims.UID)
+	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Ok"})
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Ok", "key": key})
 }

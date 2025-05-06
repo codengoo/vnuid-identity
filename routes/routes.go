@@ -39,7 +39,8 @@ func SetupRoutes(app *fiber.App) {
 
 	authCtrl.Post("/login_qr_accept", middlewares.AuthCheck(AUTH), authController.LoginByQrAccept)
 	authCtrl.Post("/login_qr_info", middlewares.AuthCheck(AUTH), authController.LoginByQrInfo)
-	authCtrl.Post("set_authenticator", middlewares.AuthCheck(AUTH), authController.SetAuthenticator)
+	authCtrl.Post("/set_authenticator", middlewares.AuthCheck(AUTH), authController.SetAuthenticator)
+	authCtrl.Post("/set_biometric", middlewares.AuthCheck(AUTH), authController.SetBiometric)
 
 	app.Use("/ws", func(ctx *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(ctx) {
