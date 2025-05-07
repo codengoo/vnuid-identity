@@ -2,6 +2,7 @@ package routes
 
 import (
 	authController "vnuid-identity/controllers/auth"
+	manageController "vnuid-identity/controllers/manage"
 	nfcController "vnuid-identity/controllers/nfc"
 	userController "vnuid-identity/controllers/user"
 	"vnuid-identity/middlewares"
@@ -13,9 +14,10 @@ import (
 func init() {}
 
 func SetupRoutes(app *fiber.App) {
-	var userCtrl = app.Group("/manage")
+	var manageCtrl = app.Group("/manage")
 	var authCtrl = app.Group("/auth")
 	var nfcCtrl = app.Group("/nfc")
+	var userCtrl = app.Group("/user")
 
 	var ADMIN = []string{"admin"}
 	var AUTH = []string{"student", "admin", "teacher"}
@@ -23,8 +25,8 @@ func SetupRoutes(app *fiber.App) {
 	nfcCtrl.Post("/add", middlewares.AuthCheck(ADMIN), nfcController.AddNFC)
 	nfcCtrl.Put("/activate/:id", middlewares.AuthCheck(ADMIN), nfcController.ActivateNFC)
 
-	userCtrl.Post("/add", middlewares.AuthCheck(ADMIN), userController.AddUser)
-	userCtrl.Delete("/remove_many", middlewares.AuthCheck(ADMIN), userController.RemoveMultipleUsers)
+	manageCtrl.Post("/add", manageController.AddUser)
+	manageCtrl.Delete("/remove_many", middlewares.AuthCheck(ADMIN), manageController.RemoveMultipleUsers)
 
 	authCtrl.Post("/login_google", authController.LoginByGoogle)
 	authCtrl.Post("/login_pass", authController.LoginByPass)
@@ -43,6 +45,8 @@ func SetupRoutes(app *fiber.App) {
 	authCtrl.Post("/set_authenticator", middlewares.AuthCheck(AUTH), authController.SetAuthenticator)
 	authCtrl.Post("/set_biometric", middlewares.AuthCheck(AUTH), authController.SetBiometric)
 	authCtrl.Post("/check_password", middlewares.AuthCheck(AUTH), authController.CheckPassword)
+
+	userCtrl.Get("/me", middlewares.AuthCheck(AUTH), userController.GetMe)
 
 	app.Use("/ws", func(ctx *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(ctx) {

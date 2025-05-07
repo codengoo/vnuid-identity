@@ -31,6 +31,15 @@ func GetUser(id string) (entities.User, error) {
 	return user, nil
 }
 
+func GetMe(id string) (entities.Profile, error) {
+	var user entities.Profile
+	result := databases.DB.Model(&entities.Profile{}).Where("id = ?", id).First(&user)
+	if result.Error != nil {
+		return entities.Profile{}, result.Error
+	}
+	return user, nil
+}
+
 func RemoveUsers(input []string) error {
 	var uuids []string
 	var emails []string

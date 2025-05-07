@@ -29,5 +29,5 @@ func SetBiometric(ctx *fiber.Ctx) error {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Ok", "key": key})
+	return utils.ReturnSuccess(ctx, map[string]any{"key": key})
 }
