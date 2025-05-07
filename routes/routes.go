@@ -18,7 +18,7 @@ func SetupRoutes(app *fiber.App) {
 	var nfcCtrl = app.Group("/nfc")
 
 	var ADMIN = []string{"admin"}
-	var AUTH = []string{"user", "admin", "teacher"}
+	var AUTH = []string{"student", "admin", "teacher"}
 
 	nfcCtrl.Post("/add", middlewares.AuthCheck(ADMIN), nfcController.AddNFC)
 	nfcCtrl.Put("/activate/:id", middlewares.AuthCheck(ADMIN), nfcController.ActivateNFC)
@@ -42,6 +42,7 @@ func SetupRoutes(app *fiber.App) {
 	authCtrl.Post("/login_qr_info", middlewares.AuthCheck(AUTH), authController.LoginByQrInfo)
 	authCtrl.Post("/set_authenticator", middlewares.AuthCheck(AUTH), authController.SetAuthenticator)
 	authCtrl.Post("/set_biometric", middlewares.AuthCheck(AUTH), authController.SetBiometric)
+	authCtrl.Post("/check_password", middlewares.AuthCheck(AUTH), authController.CheckPassword)
 
 	app.Use("/ws", func(ctx *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(ctx) {
