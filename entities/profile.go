@@ -7,4 +7,6 @@ type Profile struct {
 	DOB           *string `json:"dob"`
 	OfficialClass string  `json:"official_class" gorm:"not null"`
 	Name          string  `json:"name" gorm:"not null"`
+	Phone         string  `json:"phone"`
+	Address       string  `json:"address"`
 }

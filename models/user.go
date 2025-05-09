@@ -61,7 +61,7 @@ func RemoveUsers(input []string) error {
 }
 
 func AddUser(input entities.User) (entities.User, error) {
-	password, err := utils.GeneratePassword()
+	password, err := utils.GeneratePassword(input.Password)
 	if err != nil {
 		return entities.User{}, fmt.Errorf("failed to generate password")
 	}

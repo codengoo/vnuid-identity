@@ -15,10 +15,15 @@ func HashPassword(password string) (string, error) {
 	return string(hashedBytes), nil
 }
 
-func GeneratePassword() (string, error) {
-	password := uuid.New().String()
-	hashed, err := HashPassword(password)
+func GeneratePassword(initialPassword string) (string, error) {
+	var password string = ""
+	if initialPassword != "" {
+		password = initialPassword
+	} else {
+		password = uuid.New().String()
+	}
 
+	hashed, err := HashPassword(password)
 	return hashed, err
 }
 
