@@ -9,4 +9,5 @@ type Profile struct {
 	Name          string  `json:"name" gorm:"not null"`
 	Phone         string  `json:"phone"`
 	Address       string  `json:"address"`
+	Department    string  `json:"department"`
 }

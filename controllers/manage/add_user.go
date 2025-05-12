@@ -18,6 +18,7 @@ type AddUserRequest struct {
 	Phone         string `json:"phone" validate:"required"`
 	Address       string `json:"address" validate:"required"`
 	Password      string `json:"password" validate:"required"`
+	Department    string `json:"department"`
 }
 
 func AddUser(ctx *fiber.Ctx) error {
@@ -35,6 +36,7 @@ func AddUser(ctx *fiber.Ctx) error {
 			DOB:           nil,
 			Phone:         data.Phone,
 			Address:       data.Address,
+			Department:    data.Department,
 		})
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)

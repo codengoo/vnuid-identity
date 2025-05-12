@@ -29,7 +29,7 @@ func LoginByPass(ctx *fiber.Ctx) error {
 	}
 
 	// Check if session already logged in on device_id
-	isActive := models.CheckSession(data.DeviceId, user.ID)
+	isActive := user.Type != "student" || models.CheckSession(data.DeviceId, user.ID)
 	if isActive {
 		// Generate token
 		token, err := helpers.AddLoginSession(user, entities.Session{
@@ -42,7 +42,7 @@ func LoginByPass(ctx *fiber.Ctx) error {
 			return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 		}
 
-		return ctx.JSON(fiber.Map{"token": token, "uid": user.ProfileId})
+		return utils.ReturnToken(ctx, token, user.ProfileId)
 	} else {
 		var allowList []string = []string{"qr", "code", "nfc", "otp"}
 
