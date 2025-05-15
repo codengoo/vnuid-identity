@@ -41,18 +41,7 @@ func GetMe(id string) (entities.Profile, error) {
 }
 
 func RemoveUsers(input []string) error {
-	var uuids []string
-	var emails []string
-
-	for _, item := range input {
-		if isUUID(item) {
-			uuids = append(uuids, item)
-		} else {
-			emails = append(emails, item)
-		}
-	}
-
-	result := databases.DB.Where("id IN ? OR email IN ?", uuids, emails).Delete(&entities.User{})
+	result := databases.DB.Where("id IN ? OR profile_id IN ?", input, input).Delete(&entities.User{})
 	if result.Error != nil {
 		return fmt.Errorf("could not delete records: %v", result.Error)
 	}
@@ -79,6 +68,8 @@ func AddUser(input entities.User) (entities.User, error) {
 	result := databases.DB.Create(&user)
 
 	if result.Error != nil {
+		// find profile and delete
+		databases.DB.Where("id = ?", user.ProfileId).Delete(&entities.Profile{})
 		return entities.User{}, fmt.Errorf("failed to create user: %v", result.Error)
 	}
 
@@ -86,21 +77,14 @@ func AddUser(input entities.User) (entities.User, error) {
 }
 
 func AddUserInfo(input entities.Profile) (entities.Profile, error) {
-	user := entities.Profile{
-		ID:            uuid.New().String(),
-		DOB:           input.DOB,
-		Email:         input.Email,
-		OfficialClass: input.OfficialClass,
-		Name:          input.Name,
-		Sid:           input.Sid,
-	}
+	input.ID = uuid.New().String()
 
-	result := databases.DB.Create(&user)
+	result := databases.DB.Create(&input)
 	if result.Error != nil {
 		return entities.Profile{}, fmt.Errorf("failed to create user: %v", result.Error)
 	}
 
-	return user, nil
+	return input, nil
 }
 
 func VerifyPassword(id string, password string) (bool, entities.User) {

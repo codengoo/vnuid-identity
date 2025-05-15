@@ -18,7 +18,7 @@ type AddUserRequest struct {
 	Phone         string `json:"phone" validate:"required"`
 	Address       string `json:"address" validate:"required"`
 	Password      string `json:"password" validate:"required"`
-	Department    string `json:"department"`
+	Department    string `json:"department" validate:"required"`
 }
 
 func AddUser(ctx *fiber.Ctx) error {
@@ -27,9 +27,12 @@ func AddUser(ctx *fiber.Ctx) error {
 		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
+	println(utils.RemoveVietnameseTones(data.Name))
+
 	profile, err := models.AddUserInfo(
 		entities.Profile{
 			Name:          data.Name,
+			NameUnaccent:  utils.RemoveVietnameseTones(data.Name),
 			Sid:           data.SID,
 			Email:         data.Email,
 			OfficialClass: data.OfficialClass,

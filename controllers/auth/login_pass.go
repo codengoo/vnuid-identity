@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"strings"
 	"vnuid-identity/entities"
 	"vnuid-identity/helpers"
 	"vnuid-identity/models"
@@ -26,6 +27,10 @@ func LoginByPass(ctx *fiber.Ctx) error {
 	valid, user := models.VerifyPassword(data.Username, data.Password)
 	if !valid {
 		return utils.ReturnErrorMsg(ctx, fiber.StatusUnauthorized, "invalid email or password")
+	}
+
+	if user.Type == "student" && strings.Contains(data.DeviceName, "Windows") {
+		return utils.ReturnErrorMsg(ctx, fiber.StatusUnauthorized, "Invalid device")
 	}
 
 	// Check if session already logged in on device_id
