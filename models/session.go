@@ -1,19 +1,22 @@
 package models
 
 import (
+	"time"
 	"vnuid-identity/databases"
 	"vnuid-identity/entities"
 
 	"github.com/google/uuid"
 )
 
-func CreateSession(device_id string, uid string, saved bool, method string) (string, error) {
+func CreateSession(input entities.Session) (string, error) {
 	session := entities.Session{
-		DeviceId:    device_id,
-		LoginMethod: method,
-		SavedDevice: saved,
-		UserId:      uid,
+		DeviceId:    input.DeviceId,
+		DeviceName:  input.DeviceName,
+		LoginMethod: input.LoginMethod,
+		SavedDevice: input.SavedDevice,
+		UserId:      input.UserId,
 		ID:          uuid.New().String(),
+		CreatedAt:   time.Now(),
 	}
 
 	result := databases.DB.Create(&session)

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"vnuid-identity/entities"
 	"vnuid-identity/helpers"
 	"vnuid-identity/models"
 	"vnuid-identity/utils"
@@ -23,14 +24,19 @@ func LoginByBio(ctx *fiber.Ctx) error {
 
 	valid, user := models.VerifyBioCode(data.UID, data.BioCode)
 	if !valid {
-		return utils.ReturnErrorMsg(ctx, fiber.StatusUnauthorized, "invalid nfc code")
+		return utils.ReturnErrorMsg(ctx, fiber.StatusUnauthorized, "invalid bio code")
 	}
 
 	// Generate token
-	token, err := helpers.AddLoginSession(user, data.DeviceId, true, "nfc")
+	token, err := helpers.AddLoginSession(user, entities.Session{
+		DeviceId:    data.DeviceId,
+		DeviceName:  data.DeviceName,
+		LoginMethod: "bio",
+		SavedDevice: true,
+	})
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return ctx.JSON(fiber.Map{"token": token})
+	return ctx.JSON(fiber.Map{"token": token, "uid": user.ProfileId})
 }

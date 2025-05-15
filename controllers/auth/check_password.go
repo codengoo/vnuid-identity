@@ -8,26 +8,21 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type SetBiometricRequest struct {
+type CheckPasswordRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
-func SetBiometric(ctx *fiber.Ctx) error {
+func CheckPassword(ctx *fiber.Ctx) error {
 	userClaims := ctx.Locals("user").(*middlewares.TokenClaim)
-	var data SetAuthenticatorRequest
+	var data CheckPasswordRequest
 	if err, msg := utils.GetBodyData(ctx, &data); err != nil {
 		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
 	valid, _ := models.VerifyPassword(userClaims.UID, data.Password)
 	if !valid {
-		return utils.ReturnErrorMsg(ctx, fiber.StatusUnauthorized, "Invalid password")
+		return utils.ReturnSuccess(ctx, map[string]any{"valid": false})
 	}
 
-	key, err := models.SetBiometric(userClaims.UID)
-	if err != nil {
-		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
-	}
-
-	return utils.ReturnSuccess(ctx, map[string]any{"key": key})
+	return utils.ReturnSuccess(ctx, map[string]any{"valid": true})
 }

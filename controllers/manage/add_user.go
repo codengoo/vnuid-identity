@@ -15,6 +15,10 @@ type AddUserRequest struct {
 	Name          string `json:"name" validate:"required"`
 	OfficialClass string `json:"official_class" validate:"required"`
 	Type          string `json:"type" validate:"required"`
+	Phone         string `json:"phone" validate:"required"`
+	Address       string `json:"address" validate:"required"`
+	Password      string `json:"password" validate:"required"`
+	Department    string `json:"department" validate:"required"`
 }
 
 func AddUser(ctx *fiber.Ctx) error {
@@ -23,13 +27,19 @@ func AddUser(ctx *fiber.Ctx) error {
 		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
 
+	println(utils.RemoveVietnameseTones(data.Name))
+
 	profile, err := models.AddUserInfo(
 		entities.Profile{
 			Name:          data.Name,
+			NameUnaccent:  utils.RemoveVietnameseTones(data.Name),
 			Sid:           data.SID,
 			Email:         data.Email,
 			OfficialClass: data.OfficialClass,
 			DOB:           nil,
+			Phone:         data.Phone,
+			Address:       data.Address,
+			Department:    data.Department,
 		})
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
@@ -42,6 +52,7 @@ func AddUser(ctx *fiber.Ctx) error {
 			Sid:       data.SID,
 			Gid:       data.GID,
 			ProfileId: profile.ID,
+			Password:  data.Password,
 		})
 	if err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"vnuid-identity/entities"
 	"vnuid-identity/helpers"
 	"vnuid-identity/models"
 
@@ -14,7 +15,12 @@ func genToken(uid string, deviceId string, save bool, method string) (string, er
 		return "", fmt.Errorf("user not found")
 	}
 
-	return helpers.AddLoginSession(user, deviceId, save, method)
+	return helpers.AddLoginSession(user, entities.Session{
+		DeviceId:    deviceId,
+		DeviceName:  "",
+		LoginMethod: method,
+		SavedDevice: save,
+	})
 }
 
 func sendMessage(ctx *websocket.Conn, text string) {

@@ -15,7 +15,7 @@ type User struct {
 	Type          string `json:"type" gorm:"not null"`
 	Authenticator string `json:"authenticator"`
 	BiometricKey  string `json:"biometric_key"`
-	ProfileId     string `json:"profileId" gorm:"uniqueIndex;not null"`
+	ProfileId     string `json:"profile_id" gorm:"uniqueIndex;not null"`
 
 	Sessions []Session `json:"sessions" gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE;"`
 	Nfcs     []NFC     `json:"nfcs" gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE;"`

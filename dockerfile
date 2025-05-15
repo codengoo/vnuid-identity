@@ -17,10 +17,10 @@ WORKDIR /root/
 COPY --from=builder /app/server .
 
 # Expose the application port
-ENV DATABASE_URL=postgres://examuser:exam1234@localhost:5432/vnuid?sslmode=disable
-ENV JWT_TOKEN=your-secret-key
-ENV PORT=3333
-EXPOSE 3333
+# ENV DATABASE_URL=postgres://examuser:exam1234@localhost:5432/vnuid?sslmode=disable
+# ENV JWT_TOKEN=your-secret-key
+# ENV PORT=3333
+# EXPOSE 3333
 
 # Run the server
 CMD ["./server"]

@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"strings"
+	"vnuid-identity/entities"
 	"vnuid-identity/helpers"
 	"vnuid-identity/models"
 	"vnuid-identity/utils"
@@ -12,7 +14,7 @@ type PasswordLoginRequest struct {
 	DeviceId   string `json:"device_id" validate:"required"`
 	DeviceName string `json:"device_name" validate:"required"`
 	Password   string `json:"password" validate:"required"`
-	Email      string `json:"email" validate:"required"`
+	Username   string `json:"username" validate:"required"`
 }
 
 func LoginByPass(ctx *fiber.Ctx) error {
@@ -22,21 +24,30 @@ func LoginByPass(ctx *fiber.Ctx) error {
 	}
 
 	// Verify google ID
-	valid, user := models.VerifyPassword(data.Email, data.Password)
+	valid, user := models.VerifyPassword(data.Username, data.Password)
 	if !valid {
 		return utils.ReturnErrorMsg(ctx, fiber.StatusUnauthorized, "invalid email or password")
 	}
 
+	if user.Type == "student" && strings.Contains(data.DeviceName, "Windows") {
+		return utils.ReturnErrorMsg(ctx, fiber.StatusUnauthorized, "Invalid device")
+	}
+
 	// Check if session already logged in on device_id
-	isActive := models.CheckSession(data.DeviceId, user.ID)
+	isActive := user.Type != "student" || models.CheckSession(data.DeviceId, user.ID)
 	if isActive {
 		// Generate token
-		token, err := helpers.AddLoginSession(user, data.DeviceId, true, "pass")
+		token, err := helpers.AddLoginSession(user, entities.Session{
+			DeviceId:    data.DeviceId,
+			DeviceName:  data.DeviceName,
+			LoginMethod: "pass",
+			SavedDevice: true,
+		})
 		if err != nil {
 			return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 		}
 
-		return ctx.JSON(fiber.Map{"token": token})
+		return utils.ReturnToken(ctx, token, user.ProfileId)
 	} else {
 		var allowList []string = []string{"qr", "code", "nfc", "otp"}
 
@@ -53,6 +64,10 @@ func LoginByPass(ctx *fiber.Ctx) error {
 			return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 		}
 
-		return ctx.Status(fiber.StatusAccepted).JSON(fiber.Map{"allow": allowList, "token": token})
+		return ctx.Status(fiber.StatusAccepted).JSON(fiber.Map{
+			"allow": allowList,
+			"token": token,
+			"uid":   user.ProfileId,
+		})
 	}
 }

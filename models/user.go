@@ -20,7 +20,7 @@ func GetUser(id string) (entities.User, error) {
 	var user entities.User
 	var result *gorm.DB
 	if isUUID(id) {
-		result = databases.DB.Model(&entities.User{}).Where("id = ?", id).First(&user)
+		result = databases.DB.Model(&entities.User{}).Where("id = ? OR profile_id = ?", id, id).First(&user)
 	} else {
 		result = databases.DB.Model(&entities.User{}).Where("email = ? OR sid = ? OR gid = ?", id, id, id).First(&user)
 	}
@@ -31,19 +31,17 @@ func GetUser(id string) (entities.User, error) {
 	return user, nil
 }
 
-func RemoveUsers(input []string) error {
-	var uuids []string
-	var emails []string
-
-	for _, item := range input {
-		if isUUID(item) {
-			uuids = append(uuids, item)
-		} else {
-			emails = append(emails, item)
-		}
+func GetMe(id string) (entities.Profile, error) {
+	var user entities.Profile
+	result := databases.DB.Model(&entities.Profile{}).Where("id = ?", id).First(&user)
+	if result.Error != nil {
+		return entities.Profile{}, result.Error
 	}
+	return user, nil
+}
 
-	result := databases.DB.Where("id IN ? OR email IN ?", uuids, emails).Delete(&entities.User{})
+func RemoveUsers(input []string) error {
+	result := databases.DB.Where("id IN ? OR profile_id IN ?", input, input).Delete(&entities.User{})
 	if result.Error != nil {
 		return fmt.Errorf("could not delete records: %v", result.Error)
 	}
@@ -51,40 +49,8 @@ func RemoveUsers(input []string) error {
 	return nil
 }
 
-func AddManyUser(input []entities.User) ([]entities.User, error) {
-	type Result struct {
-		User entities.User
-		Err  error
-	}
-	ch := make(chan Result, len(input))
-
-	// Create routines
-	for _, u := range input {
-		go func(data entities.User) {
-			pass, err := utils.GeneratePassword()
-			data.ID = uuid.New().String()
-			data.Password = pass
-			ch <- Result{User: data, Err: err}
-		}(u)
-	}
-
-	var users []entities.User
-	for range input {
-		res := <-ch
-		if res.Err != nil {
-			return []entities.User{}, fmt.Errorf("failed to generate password")
-		}
-		users = append(users, res.User)
-	}
-	if result := databases.DB.CreateInBatches(&users, 50); result.Error != nil {
-		return []entities.User{}, fmt.Errorf("failed to create users: %v", result.Error)
-	}
-
-	return users, nil
-}
-
 func AddUser(input entities.User) (entities.User, error) {
-	password, err := utils.GeneratePassword()
+	password, err := utils.GeneratePassword(input.Password)
 	if err != nil {
 		return entities.User{}, fmt.Errorf("failed to generate password")
 	}
@@ -102,6 +68,8 @@ func AddUser(input entities.User) (entities.User, error) {
 	result := databases.DB.Create(&user)
 
 	if result.Error != nil {
+		// find profile and delete
+		databases.DB.Where("id = ?", user.ProfileId).Delete(&entities.Profile{})
 		return entities.User{}, fmt.Errorf("failed to create user: %v", result.Error)
 	}
 
@@ -109,21 +77,14 @@ func AddUser(input entities.User) (entities.User, error) {
 }
 
 func AddUserInfo(input entities.Profile) (entities.Profile, error) {
-	user := entities.Profile{
-		ID:            uuid.New().String(),
-		DOB:           input.DOB,
-		Email:         input.Email,
-		OfficialClass: input.OfficialClass,
-		Name:          input.Name,
-		Sid:           input.Sid,
-	}
+	input.ID = uuid.New().String()
 
-	result := databases.DB.Create(&user)
+	result := databases.DB.Create(&input)
 	if result.Error != nil {
 		return entities.Profile{}, fmt.Errorf("failed to create user: %v", result.Error)
 	}
 
-	return user, nil
+	return input, nil
 }
 
 func VerifyPassword(id string, password string) (bool, entities.User) {
@@ -159,21 +120,21 @@ func SetAuthenticator(id string, authenticator string) error {
 	return nil
 }
 
-func SetBiometric(id string) error {
+func SetBiometric(id string) (string, error) {
 	user, err := GetUser(id)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	user.BiometricKey = uuid.New().String()
 	result := databases.DB.Save(&user)
 
 	if result.Error != nil {
-		return result.Error
+		return "", result.Error
 	}
 
-	return nil
+	return user.BiometricKey, nil
 }
 
 func VerifyAuthenticator(id string, code string) (bool, entities.User) {
@@ -215,13 +176,7 @@ func VerifyBioCode(id string, code string) (bool, entities.User) {
 	}
 
 	bioCode := user.BiometricKey
-	uid, _, err := utils.DecryptPayload(bioCode, code)
-
-	if err != nil {
-		return false, entities.User{}
-	}
-
-	if uid != user.ID {
+	if bioCode != code {
 		return false, entities.User{}
 	}
 

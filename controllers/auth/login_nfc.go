@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"vnuid-identity/entities"
 	"vnuid-identity/helpers"
 	"vnuid-identity/models"
 	"vnuid-identity/utils"
@@ -31,12 +32,17 @@ func LoginByNFC(ctx *fiber.Ctx) error {
 	isActive := models.CheckSession(data.DeviceId, user.ID)
 	if isActive {
 		// Generate token
-		token, err := helpers.AddLoginSession(user, data.DeviceId, true, "nfc")
+		token, err := helpers.AddLoginSession(user, entities.Session{
+			DeviceId:    data.DeviceId,
+			DeviceName:  data.DeviceName,
+			LoginMethod: "nfc",
+			SavedDevice: true,
+		})
 		if err != nil {
 			return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 		}
 
-		return ctx.JSON(fiber.Map{"token": token})
+		return ctx.JSON(fiber.Map{"token": token, "uid": user.ProfileId})
 	} else {
 		var allowList []string = []string{"qr", "code", "pass", "otp"}
 
@@ -53,6 +59,10 @@ func LoginByNFC(ctx *fiber.Ctx) error {
 			return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 		}
 
-		return ctx.Status(fiber.StatusAccepted).JSON(fiber.Map{"allow": allowList, "token": token})
+		return ctx.Status(fiber.StatusAccepted).JSON(fiber.Map{
+			"allow": allowList,
+			"token": token,
+			"uid":   user.ProfileId,
+		})
 	}
 }
