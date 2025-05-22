@@ -39,6 +39,7 @@ func LoginByGoogle(ctx *fiber.Ctx) error {
 	if err, msg := utils.GetBodyData(ctx, &data); err != nil {
 		return utils.ReturnErrorDetails(ctx, fiber.StatusBadRequest, err, msg)
 	}
+	fmt.Println(data)
 
 	// Verify google ID
 	payload, err := verifyGoogleIDToken(data.TokenId)
