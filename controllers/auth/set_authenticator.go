@@ -7,7 +7,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pquerna/otp/totp"
-	"github.com/skip2/go-qrcode"
 )
 
 type SetAuthenticatorRequest struct {
@@ -35,14 +34,9 @@ func SetAuthenticator(ctx *fiber.Ctx) error {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	png, err := qrcode.Encode(key.URL(), qrcode.Low, 256)
-	if err != nil {
-		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
-	}
-
 	if err := models.SetAuthenticator(claims.UID, key.Secret()); err != nil {
 		return utils.ReturnError(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return ctx.Status(fiber.StatusOK).Send(png)
+	return utils.ReturnSuccess(ctx, map[string]any{"code": key.URL()})
 }
